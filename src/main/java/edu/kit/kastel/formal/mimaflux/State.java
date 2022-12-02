@@ -12,23 +12,23 @@ public class State {
 
     private static Map<String, Integer> OPCODES = Map. ofEntries(
             Map.entry("LDC", 0x000000),
-            Map.entry("DS", 0x0),
+            Map.entry("DS",  0x0),
             Map.entry("LDV", 0x100000),
             Map.entry("STV", 0x200000),
             Map.entry("ADD", 0x300000),
             Map.entry("AND", 0x400000),
-            Map.entry("OR", 0x500000),
+            Map.entry("OR",  0x500000),
             Map.entry("XOR", 0x600000),
             Map.entry("EQL", 0x700000),
             Map.entry("JMP", 0x800000),
             Map.entry("JMN", 0x900000),
-            Map.entry("LDIV", 0xa00000),
-            Map.entry("STIV", 0xb00000),
+            Map.entry("LDIV",0xa00000),
+            Map.entry("STIV",0xb00000),
             Map.entry("JMS", 0xc00000),
-            Map.entry("JIND", 0xd00000),
-            Map.entry("HALT", 0xf00000),
-            Map.entry("NOT", 0xf100000),
-            Map.entry("RAR", 0xf200000)
+            Map.entry("JIND",0xd00000),
+            Map.entry("HALT",0xf00000),
+            Map.entry("NOT", 0xf10000),
+            Map.entry("RAR", 0xf20000)
     );
 
     private static Map<Integer, String> INV_OPCODES = Map. ofEntries(
@@ -66,7 +66,7 @@ public class State {
             int opcode = OPCODES.getOrDefault(command.instruction(), -1);
             int arg = command.valueArg();
             mem[adr] = opcode;
-            if((opcode & 0xf00000) != 0xf00000) {
+            if((opcode & 0xf0_0000) != 0xf0_0000) {
                 mem[adr] |= arg;
             }
         }
@@ -100,7 +100,7 @@ public class State {
         }
     }
 
-    private static String toInstruction(int instruction) {
+    public static String toInstruction(int instruction) {
         if(instruction >> 20 == 0xf) {
             return INV_OPCODES.getOrDefault(instruction, Constants.UNKNOWN_OPCODE);
         } else {

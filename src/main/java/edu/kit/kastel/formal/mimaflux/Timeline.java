@@ -3,44 +3,39 @@ package edu.kit.kastel.formal.mimaflux;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class Timeline {
 
-    private final List<Update[]> updates = new ArrayList<>();
+    public final static int STEP = -3;
 
-    private List<Update> curUpdates = new ArrayList<>();
+    private final Update[][] updates;
 
     private final String fileContent;
+    private final Map<String, Integer> labelMap;
     private final List<Command> commands;
     private final State state;
 
     private int currentPosition = 0;
     private List<UpdateListener> listeners = new ArrayList<>();
 
-    public Timeline(String fileContent, List<Command> commands, State state) {
+    public Timeline(Update[][] updates, String fileContent, Map<String, Integer> labelMap, List<Command> commands) {
+        this.updates = updates;
         this.fileContent = fileContent;
+        this.labelMap = labelMap;
         this.commands = commands;
-        this.state = state;
+        this.state = new State(commands);
+        int start = labelMap.getOrDefault(Constants.START_LABEL, 0);
+        state.set(State.IAR, start);
     }
 
-    public void set(int addr, int val) {
-        int curVal = state.get(addr);
-        curUpdates.add(new Update(addr, curVal, val));
-        state.set(addr, val);
-
+    private void update(int addr, int val) {
+        if(addr != STEP) {
+            state.set(addr, val);
+        }
         for (UpdateListener listener : listeners) {
             listener.memoryChanged(addr, val);
         }
-    }
-
-    public void incIAR() {
-        set(State.IAR, (state.get(State.IAR) + 1) & Constants.ADDRESS_MASK);
-    }
-
-    public void commit() {
-        updates.add(curUpdates.toArray(Update[]::new));
-        curUpdates.clear();
-        currentPosition++;
     }
 
     public State exposeState() {
@@ -51,9 +46,14 @@ public class Timeline {
         listeners.add(listener);
     }
 
+    public void addToPosition(int offset) {
+        setPosition(currentPosition + offset);
+    }
+
     public void setPosition(int position) {
 
-        position = Math.min(updates.size(), position);
+        position = Math.min(updates.length, position);
+        position = Math.max(0, position);
 
         if(currentPosition < position) {
             while(currentPosition < position) {
@@ -64,18 +64,20 @@ public class Timeline {
                 decrementPosition();
             }
         }
+
+        update(STEP, currentPosition);
     }
 
     private void decrementPosition() {
         currentPosition--;
-        for (Update update : updates.get(currentPosition)) {
-            set(update.addr(), update.oldValue());
+        for (Update update : updates[currentPosition]) {
+            update(update.addr(), update.oldValue());
         }
     }
 
     private void incrementPosition() {
-        for (Update update : updates.get(currentPosition)) {
-            set(update.addr(), update.newValue());
+        for (Update update : updates[currentPosition]) {
+            update(update.addr(), update.newValue());
         }
         currentPosition ++;
     }
@@ -84,9 +86,6 @@ public class Timeline {
         return currentPosition;
     }
 
-    public int size() {
-        return updates.size();
-    }
     public String getFileContent() {
         return fileContent;
     }
@@ -95,4 +94,20 @@ public class Timeline {
         return Collections.unmodifiableList(commands);
     }
 
+    public int get(int adr) {
+        return state.get(adr);
+    }
+
+    public int countStates() {
+        return updates.length;
+    }
+
+    public Command findIARCommand() {
+        for (Command command : commands) {
+            if(command.address() == state.get(State.IAR)) {
+                return command;
+            }
+        }
+        return null;
+    }
 }
