@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'antlr'
+}
+
+group 'edu.kit.kastel.formal'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "edu.kit.kastel.formal.mimaflux.MimaFlux"
+    }
+}
+
+application {
+    mainClass = "edu.kit.kastel.formal.mimaflux.MimaFlux"
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    // Runtime only needs antlr4-runtime, not the whole antlr4.
+    implementation 'org.antlr:antlr4-runtime:4.7.1'
+
+    // Customise antlr4 version, for buildscript
+    antlr 'org.antlr:antlr4:4.7.1'
+
+    implementation 'com.beust:jcommander:1.82'
+    implementation 'org.kordamp.ikonli:ikonli-swing:12.3.1'
+    implementation 'org.kordamp.ikonli:ikonli-codicons-pack:12.3.1'
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-visitor", "-no-listener"]
+}
+
+test {
+    useJUnitPlatform()
+}
