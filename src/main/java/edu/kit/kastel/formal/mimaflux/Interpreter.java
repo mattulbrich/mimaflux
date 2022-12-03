@@ -96,7 +96,10 @@ public class Interpreter {
 
                 case 0xf: switch(arg) {
                     case 0x00000: builder.commit(); break loop;
-                    case 0x10000: builder.set(State.ACCU, ~state.get(State.ACCU)); builder.incIAR(); break;
+                    case 0x10000:
+                        builder.set(State.ACCU, (~state.get(State.ACCU)) & Constants.VALUE_MASK);
+                        builder.incIAR();
+                        break;
                     case 0x20000:
                         tmp = state.get(State.ACCU);
                         tmp = (tmp >> 1) | ((tmp & 1) << (Constants.VALUE_WIDTH - 1));

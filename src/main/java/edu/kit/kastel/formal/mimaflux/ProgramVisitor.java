@@ -27,7 +27,7 @@ public class ProgramVisitor extends MimaAsmBaseVisitor<Void> {
         if (ctx.label != null) {
             label = ctx.label.getText();
         }
-        int valueArg = -1;
+        int valueArg = 0;
         if (ctx.numberArg != null) {
             valueArg = Integer.decode(ctx.numberArg.getText());
         }
