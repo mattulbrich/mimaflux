@@ -1,6 +1,7 @@
 package edu.kit.kastel.formal.mimaflux;
 
 import edu.kit.kastel.formal.mimaflux.MimaAsmParser.FileContext;
+import edu.kit.kastel.formal.mimaflux.pl.MimaCompiler;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -12,13 +13,21 @@ import java.util.List;
 import java.util.Map;
 
 public class Interpreter {
-    private final String fileName;
+    private String fileName;
     private String fileContent;
     private Map<String, Integer> labelMap;
     private List<Command> commands;
 
     public Interpreter(String fileName) {
         this.fileName = fileName;
+    }
+
+    public void preCompile() throws IOException {
+        if (fileName.endsWith(".wmima")) {
+            List<String> compiled = MimaCompiler.parse(fileName);
+            fileName = fileName.substring(0, fileName.length() - 5) + "mima";
+            Files.write(Paths.get(fileName), compiled);
+        }
     }
 
     public void parse() throws IOException {

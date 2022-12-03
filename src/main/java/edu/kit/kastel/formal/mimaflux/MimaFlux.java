@@ -22,6 +22,7 @@ public class MimaFlux {
                 }
             } else {
                 Interpreter interpreter = new Interpreter(mmargs.fileName);
+                interpreter.preCompile();
                 interpreter.parse();
                 timeline = interpreter.makeTimeline();
 

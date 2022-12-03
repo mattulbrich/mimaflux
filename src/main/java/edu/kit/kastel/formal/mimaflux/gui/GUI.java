@@ -235,6 +235,7 @@ public class GUI extends JFrame implements UpdateListener {
     private void loadFile(String file) {
         try {
             Interpreter interpreter = new Interpreter(file);
+            interpreter.preCompile();
             interpreter.parse();
             timeline = interpreter.makeTimeline();
             setTimeline(timeline);
