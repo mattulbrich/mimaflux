@@ -91,6 +91,8 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
         emit("  STIV SP");
 
         visitBlock(ctx.block());
+        comment("return at function end, value is indetermined");
+        emit("  JIND SP");
         return null;
     }
 
@@ -269,24 +271,6 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
         }
     }
 
-    private void storeVar(String from, String var) {
-        int idx = locals.indexOf(var);
-        if (idx == -1) {
-            if (!globals.contains(var)) {
-                System.err.println("UNKNOWN " + var);
-            }
-            emit("  LDV " + from);
-            emit("  STV " + var);
-        } else {
-            emit("  LDC " + (idx + 1));
-            emit("  ADD SP");
-            emit("  STV Y0");
-            emit("  LDV " + from);
-            emit("  LDIV Y0");
-        }
-    }
-
-
     private void loadVar(String var) {
         int idx = locals.indexOf(var);
         if (idx == -1) {
@@ -300,11 +284,6 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
             emit("  STV Y0");
             emit("  LDIV Y0");
         }
-    }
-
-    private void loadVar(String var, String into) {
-        loadVar(var);
-        emit("  STV " + into);
     }
 
     public List<String> getCompilation() {
