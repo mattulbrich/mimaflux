@@ -1,6 +1,7 @@
 package edu.kit.kastel.formal.mimaflux.pl;
 
 import edu.kit.kastel.formal.mimaflux.TokenedException;
+import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.ArrayExpContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.AssignStmContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.BinExpContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.BlockContext;
@@ -167,6 +168,19 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
                 throw new TokenedException(ctx.op, "Unknown");
         }
         nestLevel--;
+        return null;
+    }
+
+    @Override
+    public Void visitArrayExp(ArrayExpContext ctx) {
+        commentStm(ctx);
+        String myX = "X" + nestLevel;
+        ctx.expr().accept(this);
+        emit("  STV " + myX);
+        emit("  LDC " + ctx.ID().getText());
+        emit("  ADD " + myX);
+        emit("  STV " + myX);
+        emit("  LDIV " + myX);
         return null;
     }
 

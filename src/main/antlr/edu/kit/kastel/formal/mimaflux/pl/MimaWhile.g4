@@ -29,6 +29,7 @@ expr :
   | op=('~' | '*' | '-') arg=expr #unExp
   | (NUMBER | ZERO) #litExp
   | ID #varExp
+  | ID '[' expr ']' #arrayExp
   | '(' expr ')' # parenExp
   ;
 
