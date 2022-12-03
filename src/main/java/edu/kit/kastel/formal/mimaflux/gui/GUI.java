@@ -12,6 +12,7 @@ import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -25,17 +26,14 @@ public class GUI extends JFrame implements UpdateListener {
     private static final Object[] TABLE_HEADERS = { "Address", "Value", "Instruction" };
     public static final int ROW_COUNT = 1 << 12;
     private static final Font TABLE_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 14);
-    private static final FileFilter MIMA_FILE_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File f) {
-            return f.getName().endsWith(".mima");
-        }
 
-        @Override
-        public String getDescription() {
-            return "Mima Files (.mima)";
-        }
-    };
+    private static final FileFilter MIMA_FILE_FILTER =
+            new FileNameExtensionFilter("Mima Files (.mima/.wmima)", "wmima", "mima");
+    private static final FileFilter MIMA_ASM_FILE_FILTER =
+            new FileNameExtensionFilter("Mima ASM Files (.mima)", "mima");
+
+    private static final FileFilter MIMA_WHILE_FILE_FILTER =
+            new FileNameExtensionFilter("Mima WHILE Files (.wmima)", "wmima");
 
     private BreakpointManager breakpointManager = new BreakpointManager();
 
@@ -198,21 +196,23 @@ public class GUI extends JFrame implements UpdateListener {
     private Container makeButtonPanel() {
         JToolBar buttonPanel = new JToolBar();
         buttonPanel.setFloatable(false);
-        buttonPanel.add(b("Menu", Codicons.MENU, this::showMenu));
+        buttonPanel.add(b("Menu", null, Codicons.MENU, this::showMenu));
         buttonPanel.addSeparator(new Dimension(50,0));
-        buttonPanel.add(b("Go to initial state", Codicons.DEBUG_RESTART, e -> timeline.setPosition(0)));
-        buttonPanel.add(b("Continue backwards", Codicons.DEBUG_REVERSE_CONTINUE, e -> continueToBreakpoint(-1)));
-        buttonPanel.add(b("Step backwards", Codicons.DEBUG_STEP_BACK, e -> timeline.addToPosition(-1)));
-        buttonPanel.add(b("Step forwards", Codicons.DEBUG_STEP_OVER, e -> timeline.addToPosition(1)));
-        buttonPanel.add(b("Continue forwards", Codicons.DEBUG_CONTINUE, e-> continueToBreakpoint(+1)));
-        buttonPanel.add(b("Go to terminal state", Codicons.DEBUG_START, e-> timeline.setPosition(timeline.countStates() - 1)));
+        buttonPanel.add(b("Go to initial state", null, Codicons.DEBUG_RESTART, e -> timeline.setPosition(0)));
+        buttonPanel.add(b("Continue backwards",  KeyStroke.getKeyStroke("F5"), Codicons.DEBUG_REVERSE_CONTINUE, e -> continueToBreakpoint(-1)));
+        buttonPanel.add(b("Step backwards",  KeyStroke.getKeyStroke("F6"), Codicons.DEBUG_STEP_BACK, e -> timeline.addToPosition(-1)));
+        buttonPanel.add(b("Step forwards",  KeyStroke.getKeyStroke("F8"), Codicons.DEBUG_STEP_OVER, e -> timeline.addToPosition(1)));
+        buttonPanel.add(b("Continue forwards",  KeyStroke.getKeyStroke("F9"), Codicons.DEBUG_CONTINUE, e-> continueToBreakpoint(+1)));
+        buttonPanel.add(b("Go to terminal state",  null, Codicons.DEBUG_START, e-> timeline.setPosition(timeline.countStates() - 1)));
 
         return buttonPanel;
     }
 
     private void showMenu(ActionEvent e) {
         JPopupMenu popup = new JPopupMenu();
-        popup.add("Load ...").addActionListener(this::chooseFile);
+        JMenuItem b = popup.add("Load ...");
+        b.addActionListener(this::chooseFile);
+
         popup.add("Reload last file").addActionListener(this::reload);
         popup.add("Exit").addActionListener(ev -> System.exit(0));
         Component comp = (Component) e.getSource();
@@ -232,6 +232,8 @@ public class GUI extends JFrame implements UpdateListener {
     private void chooseFile(ActionEvent e) {
         JFileChooser jfc = new JFileChooser(".");
         jfc.addChoosableFileFilter(MIMA_FILE_FILTER);
+        jfc.addChoosableFileFilter(MIMA_ASM_FILE_FILTER);
+        jfc.addChoosableFileFilter(MIMA_WHILE_FILE_FILTER);
         jfc.setFileFilter(MIMA_FILE_FILTER);
         int result = jfc.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -272,13 +274,20 @@ public class GUI extends JFrame implements UpdateListener {
         } while(pos > 0 && pos < timeline.countStates());
     }
 
-    private JButton b(String text, Ikon ikon, ActionListener listener) {
+    private JButton b(String text, KeyStroke keyStroke, Ikon ikon, ActionListener listener) {
         JButton res = new JButton(FontIcon.of(ikon, 28));
         res.setToolTipText(text);
         res.addActionListener(listener);
         res.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(5,10,5, 10),
                 res.getBorder()));
+        res.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, text);
+        res.getActionMap().put(text, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                listener.actionPerformed(e);
+            }
+        });
         return res;
     }
 
