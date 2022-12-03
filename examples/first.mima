@@ -1,0 +1,12 @@
+; Add two numbers to a thrid address
+
+a: DS 22
+b: DS 20
+c: DS
+
+LDV a
+ADD b
+STV c
+
+HALT
+

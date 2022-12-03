@@ -6,6 +6,7 @@ import edu.kit.kastel.formal.mimaflux.MimaFlux;
 import edu.kit.kastel.formal.mimaflux.State;
 import edu.kit.kastel.formal.mimaflux.Timeline;
 import edu.kit.kastel.formal.mimaflux.UpdateListener;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.codicons.Codicons;
 import org.kordamp.ikonli.swing.FontIcon;
@@ -247,6 +248,11 @@ public class GUI extends JFrame implements UpdateListener {
             timeline = interpreter.makeTimeline();
             setTimeline(timeline);
             this.lastFilename = file;
+        } catch (ParseCancellationException parseCancel) {
+            JOptionPane.showMessageDialog(this,
+                    parseCancel.getCause().getMessage(),
+                    "Error while executing mima file.", JOptionPane.ERROR_MESSAGE);
+            MimaFlux.logStacktrace(parseCancel);
         } catch(Exception ex) {
             JOptionPane.showMessageDialog(this,
                     ex.getMessage(),

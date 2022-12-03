@@ -31,6 +31,7 @@ public class Interpreter {
         MimaAsmParser parser = new MimaAsmParser(tokens);
         BailOutErrorStrategy errorStrategy = new BailOutErrorStrategy();
         parser.setErrorHandler(errorStrategy);
+        parser.addErrorListener(errorStrategy.ERROR_LISTENER);
         FileContext content = parser.file();
         ProgramVisitor pv = new ProgramVisitor();
         content.accept(pv);
