@@ -82,10 +82,13 @@ public class Interpreter {
                     break;
                 case 0xb:
                     tmp = state.get(arg);
-                    builder.set(state.get(tmp), state.get(State.ACCU));
+                    builder.set(tmp, state.get(State.ACCU));
                     builder.incIAR();
                     break;
-                // case 0xc: currently not supported
+                case 0xc:
+                    builder.set(arg, state.get(State.IAR) + 1);
+                    builder.set(State.IAR, (arg + 1) & Constants.ADDRESS_MASK);
+                    break;
                 case 0xd:
                     tmp = state.get(arg);
                     builder.set(State.IAR, state.get(tmp));

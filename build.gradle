@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'antlr'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 group 'edu.kit.kastel.formal'

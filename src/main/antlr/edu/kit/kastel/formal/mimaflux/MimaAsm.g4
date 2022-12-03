@@ -24,7 +24,7 @@ command :
 
 mnemomicWith :
   LDC | DS | LDV | STV | LDIV | STIV | ADD | AND | OR | XOR | JMP | JMN |
-  JIND | EQL
+  JIND | EQL | JMS
   ;
 
 mnemomicWithout :
@@ -44,6 +44,7 @@ XOR : 'XOR';
 JMP : 'JMP';
 JMN : 'JMN';
 JIND : 'JIND';
+JMS : 'JMS';
 HALT : 'HALT';
 NOT : 'NOT';
 RAR : 'RAR';
