@@ -198,14 +198,14 @@ public class GUI extends JFrame implements UpdateListener {
     private Container makeButtonPanel() {
         JToolBar buttonPanel = new JToolBar();
         buttonPanel.setFloatable(false);
-        buttonPanel.add(b("Menu", Codicons.MENU, this::showMenu));
+        buttonPanel.add(b("Menu", null, Codicons.MENU, this::showMenu));
         buttonPanel.addSeparator(new Dimension(50,0));
-        buttonPanel.add(b("Go to initial state", Codicons.DEBUG_RESTART, e -> timeline.setPosition(0)));
-        buttonPanel.add(b("Continue backwards", Codicons.DEBUG_REVERSE_CONTINUE, e -> continueToBreakpoint(-1)));
-        buttonPanel.add(b("Step backwards", Codicons.DEBUG_STEP_BACK, e -> timeline.addToPosition(-1)));
-        buttonPanel.add(b("Step forwards", Codicons.DEBUG_STEP_OVER, e -> timeline.addToPosition(1)));
-        buttonPanel.add(b("Continue forwards", Codicons.DEBUG_CONTINUE, e-> continueToBreakpoint(+1)));
-        buttonPanel.add(b("Go to terminal state", Codicons.DEBUG_START, e-> timeline.setPosition(timeline.countStates() - 1)));
+        buttonPanel.add(b("Go to initial state", null, Codicons.DEBUG_RESTART, e -> timeline.setPosition(0)));
+        buttonPanel.add(b("Continue backwards",  KeyStroke.getKeyStroke("F5"), Codicons.DEBUG_REVERSE_CONTINUE, e -> continueToBreakpoint(-1)));
+        buttonPanel.add(b("Step backwards",  KeyStroke.getKeyStroke("F6"), Codicons.DEBUG_STEP_BACK, e -> timeline.addToPosition(-1)));
+        buttonPanel.add(b("Step forwards",  KeyStroke.getKeyStroke("F8"), Codicons.DEBUG_STEP_OVER, e -> timeline.addToPosition(1)));
+        buttonPanel.add(b("Continue forwards",  KeyStroke.getKeyStroke("F9"), Codicons.DEBUG_CONTINUE, e-> continueToBreakpoint(+1)));
+        buttonPanel.add(b("Go to terminal state",  null, Codicons.DEBUG_START, e-> timeline.setPosition(timeline.countStates() - 1)));
 
         return buttonPanel;
     }
@@ -271,13 +271,20 @@ public class GUI extends JFrame implements UpdateListener {
         } while(pos > 0 && pos < timeline.countStates());
     }
 
-    private JButton b(String text, Ikon ikon, ActionListener listener) {
+    private JButton b(String text, KeyStroke keyStroke, Ikon ikon, ActionListener listener) {
         JButton res = new JButton(FontIcon.of(ikon, 28));
         res.setToolTipText(text);
         res.addActionListener(listener);
         res.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(5,10,5, 10),
                 res.getBorder()));
+        res.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, text);
+        res.getActionMap().put(text, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                listener.actionPerformed(e);
+            }
+        });
         return res;
     }
 
