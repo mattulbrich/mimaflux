@@ -12,7 +12,6 @@ import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.HaltStmContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.If0StmContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.IfCmpStmContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.LitExpContext;
-import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.ParenExpContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.ReturnStmContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.UnExpContext;
 import edu.kit.kastel.formal.mimaflux.pl.MimaWhileParser.VarExpContext;
@@ -27,7 +26,7 @@ import java.util.Set;
 
 public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
 
-    private static final int MAX_NEST_LEVEL = 10;
+    public static final int STACK_BOUND = 10;
     private List<String> lines = new ArrayList<>();
 
     private Set<String> globals = new HashSet<>();
@@ -35,16 +34,15 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
     private List<String> locals = new ArrayList<>();
     private int labelCounter;
 
-    private int nestLevel;
+    private BoundedStack boundedStack = new BoundedStack(STACK_BOUND);
 
     @Override
     public Void visitFile(FileContext ctx) {
-        comment("# Fixed variables");
+        comment("# Internal and stack variables");
         emit("SP: DS 0x80000");
-        for (int i = 0; i <= 10; i++) {
+        for (int i = 0; i <= STACK_BOUND; i++) {
             emit("X%d: DS 0", i);
         }
-        emit("Y0 : DS 0");
 
         comment("# Global variables");
         int countGlobal = 0;
@@ -107,14 +105,15 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
     @Override
     public Void visitReturnStm(ReturnStmContext ctx) {
         commentStm(ctx);
+        String x0 = boundedStack.current();
         comment("SP[1] into X1");
         emit("  LDC 1");
         emit("  ADD SP");
-        emit("  STV X1");
+        emit("  STV " + x0);
         comment("arg into accu");
         loadVar(ctx.ID().getText());
         comment("store result value and return");
-        emit("  STIV X1");
+        emit("  STIV " + x0);
         emit("  JIND SP");
         return null;
     }
@@ -133,54 +132,50 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
 
     @Override
     public Void visitUnExp(UnExpContext ctx) {
-        nestLevel++;
         ctx.arg.accept(this);
+        String x0 = boundedStack.current();
         switch (ctx.op.getText()) {
             case "~": emit("  NOT"); break;
             case "*": emit("  RAR"); break;
             case "-":
-                if(nestLevel > MAX_NEST_LEVEL) {
-                    throw new TokenedException(ctx.op, "Nesting");
-                }
                 emit("  NOT");
-                emit("  STV X" + nestLevel);
+                emit("  STV " + x0);
                 emit("  LDC 1");
-                emit("  ADD X" + nestLevel);
+                emit("  ADD " + x0);
             default: throw new TokenedException(ctx.op, "Unknown");
         }
-        nestLevel--;
         return null;
     }
 
     @Override
     public Void visitBinExp(BinExpContext ctx) {
-        String myX = "X" + nestLevel;
-        nestLevel++;
         ctx.arg1.accept(this);
-        emit("  STV " + myX);
+        String x0 = boundedStack.inc();
+        emit("  STV " + x0);
         ctx.arg2.accept(this);
         switch (ctx.op.getText()) {
-            case "+": emit("  ADD " + myX); break;
-            case "&": emit("  AND " + myX); break;
-            case "|": emit("  OR " + myX); break;
-            case "^": emit("  XOR " + myX); break;
+            case "+": emit("  ADD " + x0); break;
+            case "&": emit("  AND " + x0); break;
+            case "|": emit("  OR " + x0); break;
+            case "^": emit("  XOR " + x0); break;
             default:
                 throw new TokenedException(ctx.op, "Unknown");
         }
-        nestLevel--;
+        boundedStack.dec();
         return null;
     }
 
     @Override
     public Void visitArrayExp(ArrayExpContext ctx) {
         commentStm(ctx);
-        String myX = "X" + nestLevel;
         ctx.expr().accept(this);
+        String myX = boundedStack.inc();
         emit("  STV " + myX);
-        emit("  LDC " + ctx.ID().getText());
+        loadVar(ctx.ID().getText());
         emit("  ADD " + myX);
         emit("  STV " + myX);
         emit("  LDIV " + myX);
+        boundedStack.dec();
         return null;
     }
 
@@ -203,23 +198,21 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
     @Override
     public Void visitIfCmpStm(IfCmpStmContext ctx) {
         commentStm(ctx);
-        nestLevel ++;
+        ctx.arg1.accept(this);
+        String x0 = boundedStack.inc();
+        emit("  STV " + x0);
+        ctx.arg2.accept(this);
+
         switch (ctx.op.getText()) {
             case "=":
-                ctx.arg1.accept(this);
-                emit("  STV X0");
-                ctx.arg2.accept(this);
-                emit("  EQL X0");
+                emit("  EQL " + x0);
                 break;
             case "<=":
-                ctx.arg1.accept(this);
-                emit("  STV X0");
-                ctx.arg2.accept(this);
                 emit("  NOT");
-                emit("  ADD X0");
+                emit("  ADD " + x0);
                 break;
         }
-        nestLevel --;
+        boundedStack.dec();
         visitIfJMN(ctx.thenBlk, ctx.elseBlk);
         return null;
     }
@@ -241,23 +234,21 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
         String lblLoop = "L" + (labelCounter++);
         String lblAfter = "L" + (labelCounter++);
         emit(lblLoop + ":");
-        nestLevel ++;
+        ctx.arg1.accept(this);
+        String x0 = boundedStack.inc();
+        emit("  STV " + x0);
+        ctx.arg2.accept(this);
+
         switch (ctx.op.getText()) {
             case "=":
-                ctx.arg1.accept(this);
-                emit("  STV X0");
-                ctx.arg2.accept(this);
                 emit("  EQL X0");
                 break;
             case "<=":
-                ctx.arg1.accept(this);
-                emit("  STV X0");
-                ctx.arg2.accept(this);
                 emit("  NOT");
                 emit("  ADD X0");
                 break;
         }
-        nestLevel --;
+        boundedStack.dec();
         emit("  NOT");
         emit("  JMN " + lblAfter);
         visitBlock(ctx.block());
@@ -276,12 +267,14 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
             }
             emit("  STV " + var);
         } else {
-            emit("  STV X1");
+            String x0 = boundedStack.current();
+            String x1 = boundedStack.current(1);
+            emit("  STV " + x0);
             emit("  LDC " + (idx + 1));
             emit("  ADD SP");
-            emit("  STV X0");
-            emit("  LDV X1");
-            emit("  LDIV X0");
+            emit("  STV " + x0);
+            emit("  LDV " + x1);
+            emit("  LDIV " + x0);
         }
     }
 
@@ -293,10 +286,11 @@ public class CompilerVisitor extends MimaWhileBaseVisitor<Void> {
             }
             emit("  LDV " + var);
         } else {
+            String x0 = boundedStack.current();
             emit("  LDC " + (idx + 1));
             emit("  ADD SP");
-            emit("  STV Y0");
-            emit("  LDIV Y0");
+            emit("  STV " + x0);
+            emit("  LDIV " + x0);
         }
     }
 
