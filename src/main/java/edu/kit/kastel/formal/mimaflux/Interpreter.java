@@ -1,29 +1,28 @@
 package edu.kit.kastel.formal.mimaflux;
 
 import edu.kit.kastel.formal.mimaflux.MimaAsmParser.FileContext;
-import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.atn.ATNConfigSet;
-import org.antlr.v4.runtime.dfa.DFA;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Interpreter {
     private final String fileName;
     private String fileContent;
     private Map<String, Integer> labelMap;
     private List<Command> commands;
+
+    private Map<Integer, Integer> initialValues = new HashMap<>();
 
     public Interpreter(String fileName) {
         this.fileName = fileName;
@@ -60,9 +59,14 @@ public class Interpreter {
         TimelineBuilder builder = new TimelineBuilder(fileContent, labelMap, commands);
         State state = builder.exposeState();
 
+        for (Entry<Integer, Integer> entry : initialValues.entrySet()) {
+            builder.set(entry.getKey(), entry.getValue());
+            MimaFlux.log("Update to initial state: " + entry);
+        }
+
         if (MimaFlux.mmargs.verbose) {
             System.out.println(" ---- initial state");
-            state.printToConsole();
+            state.printToConsole(labelMap);
         }
 
         int count = 0;
@@ -127,7 +131,7 @@ public class Interpreter {
             builder.commit();
             if (MimaFlux.mmargs.verbose) {
                 System.out.println(" ---- After step " + builder.size());
-                state.printToConsole();
+                state.printToConsole(labelMap);
             }
         }
         MimaFlux.log(" ---- Finished interpretation");
@@ -142,5 +146,12 @@ public class Interpreter {
         int res = fun.apply(op1, op2) & Constants.VALUE_MASK;
         builder.set(State.ACCU, res);
         builder.incIAR();
+    }
+    public Map<String, Integer> getLabelMap() {
+        return labelMap;
+    }
+
+    public void addPresetValue(Integer addr, Integer val) {
+        initialValues.put(addr, val);
     }
 }

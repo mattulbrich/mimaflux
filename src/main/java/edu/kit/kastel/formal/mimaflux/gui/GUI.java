@@ -13,6 +13,7 @@ import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -26,17 +27,10 @@ public class GUI extends JFrame implements UpdateListener {
     private static final Object[] TABLE_HEADERS = { "Address", "Value", "Instruction" };
     public static final int ROW_COUNT = 1 << 12;
     private static final Font TABLE_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 14);
-    private static final FileFilter MIMA_FILE_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File f) {
-            return f.getName().endsWith(".mima");
-        }
 
-        @Override
-        public String getDescription() {
-            return "Mima Files (.mima)";
-        }
-    };
+    private static final FileFilter MIMA_ASM_FILE_FILTER =
+            new FileNameExtensionFilter("Mima ASM Files (.mima)", "mima");
+
 
     private BreakpointManager breakpointManager = new BreakpointManager();
 
@@ -232,8 +226,8 @@ public class GUI extends JFrame implements UpdateListener {
 
     private void chooseFile(ActionEvent e) {
         JFileChooser jfc = new JFileChooser(".");
-        jfc.addChoosableFileFilter(MIMA_FILE_FILTER);
-        jfc.setFileFilter(MIMA_FILE_FILTER);
+        jfc.addChoosableFileFilter(MIMA_ASM_FILE_FILTER);
+        jfc.setFileFilter(MIMA_ASM_FILE_FILTER);
         int result = jfc.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = jfc.getSelectedFile();
@@ -248,6 +242,15 @@ public class GUI extends JFrame implements UpdateListener {
             timeline = interpreter.makeTimeline();
             setTimeline(timeline);
             this.lastFilename = file;
+
+            if (timeline.countStates() == MimaFlux.mmargs.maxSteps) {
+                JOptionPane.showMessageDialog(this,
+                        new Object[] {
+                                "This timeline reaches the maximum number of steps.",
+                                "Perhaps an infinite loop? Consider using '-maxStep' to increase this bound." },
+                "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+
         } catch (ParseCancellationException parseCancel) {
             JOptionPane.showMessageDialog(this,
                     parseCancel.getCause().getMessage(),

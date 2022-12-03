@@ -28,7 +28,6 @@ public class TimelineBuilder {
         int curVal = state.get(addr);
         curUpdates.add(new Update(addr, curVal, val));
         state.set(addr, val);
-
     }
 
     public void commit() {

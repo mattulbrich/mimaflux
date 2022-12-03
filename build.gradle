@@ -18,6 +18,13 @@ jar {
     }
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(16)
+    }
+}
+
+
 application {
     mainClass = "edu.kit.kastel.formal.mimaflux.MimaFlux"
 }

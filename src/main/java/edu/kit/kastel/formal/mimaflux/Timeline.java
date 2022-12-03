@@ -120,4 +120,8 @@ public class Timeline {
         }
         return null;
     }
+
+    public Map<String, Integer> getLabelMap() {
+        return labelMap;
+    }
 }

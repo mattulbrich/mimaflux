@@ -9,6 +9,9 @@ public class MimaFluxArgs {
     record Range(int from, int to) {
     }
 
+    @Parameter(names = { "-help", "-h" }, help = true, description = "Show this usage text")
+    public boolean help;
+
     static class RangeConverter implements IStringConverter<Range> {
         @Override
         public Range convert(String value) {
@@ -33,11 +36,21 @@ public class MimaFluxArgs {
     public boolean autoRun;
 
     @Parameter(names = {"-print", "-p"},
-            description = "Comma-separated list of memory ranges to be printed after finishing the program",
+            description = "Comma-separated list of memory ranges to be printed after finishing the program [only in -run mode]",
             converter = RangeConverter.class
     )
     public List<Range> printRanges;
 
-    @Parameter(names = "-maxSteps", description = "Maximum number of steps to be recorded by flux compensator")
+    @Parameter(names = {"-set", "-s"},
+            description = "..."
+    )
+    public List<String> assignments;
+
+    @Parameter(names = {"-test", "-t"},
+            description = "..."
+    )
+    public List<String> tests;
+
+    @Parameter(names = "-maxSteps", description = "Maximum number of steps to be recorded by mima flux")
     public int maxSteps = 1000;
 }
