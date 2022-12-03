@@ -232,6 +232,7 @@ public class GUI extends JFrame implements UpdateListener {
     private void chooseFile(ActionEvent e) {
         JFileChooser jfc = new JFileChooser(".");
         jfc.addChoosableFileFilter(MIMA_FILE_FILTER);
+        jfc.setFileFilter(MIMA_FILE_FILTER);
         int result = jfc.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = jfc.getSelectedFile();
