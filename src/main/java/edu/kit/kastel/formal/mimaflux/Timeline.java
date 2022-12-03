@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Timeline {
 
@@ -106,6 +107,15 @@ public class Timeline {
         for (Command command : commands) {
             if(command.address() == state.get(State.IAR)) {
                 return command;
+            }
+        }
+        return null;
+    }
+
+    public String getNameFor(int adr) {
+        for (Entry<String, Integer> entry : labelMap.entrySet()) {
+            if (entry.getValue() == adr) {
+                return entry.getKey();
             }
         }
         return null;

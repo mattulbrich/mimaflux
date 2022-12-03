@@ -75,9 +75,16 @@ public class GUI extends JFrame implements UpdateListener {
     private void refillTable() {
         int page = ((Number)pageSpinner.getValue()).intValue() * ROW_COUNT;
 
+
         for (int i = 0; i < ROW_COUNT; i++) {
             int adr = page | i;
-            tableModel.setValueAt(String.format("0x%05x", adr), i, 0);
+            String name = timeline.getNameFor(adr);
+            if (name == null) {
+                name = "";
+            } else {
+                name = " (" + name + ")";
+            }
+            tableModel.setValueAt(String.format("0x%05x%s", adr, name), i, 0);
             tableModel.setValueAt(formatValue(timeline.get(adr)), i, 1);
             tableModel.setValueAt(State.toInstruction(timeline.get(adr)), i, 2);
         }
