@@ -1,3 +1,17 @@
+/*
+ * This file is part of the tool MimaFlux.
+ * https://github.com/mattulbrich/mimaflux
+ *
+ * MimaFlux is a time travel debugger for the Minimal Machine
+ * used in Informatics teaching at a number of schools.
+ *
+ * The system is protected by the GNU General Public License Version 3.
+ * See the file LICENSE in the main directory of the project.
+ *
+ * (c) 2016-2022 Karlsruhe Institute of Technology
+ *
+ * Adapted for Mima by Mattias Ulbrich
+ */
 package edu.kit.kastel.formal.mimaflux.gui;
 
 import edu.kit.kastel.formal.mimaflux.Command;
@@ -6,6 +20,7 @@ import edu.kit.kastel.formal.mimaflux.MimaFlux;
 import edu.kit.kastel.formal.mimaflux.State;
 import edu.kit.kastel.formal.mimaflux.Timeline;
 import edu.kit.kastel.formal.mimaflux.UpdateListener;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.codicons.Codicons;
 import org.kordamp.ikonli.swing.FontIcon;
@@ -250,6 +265,20 @@ public class GUI extends JFrame implements UpdateListener {
             timeline = interpreter.makeTimeline();
             setTimeline(timeline);
             this.lastFilename = file;
+
+            if (timeline.countStates() == MimaFlux.mmargs.maxSteps) {
+                JOptionPane.showMessageDialog(this,
+                        new Object[] {
+                                "This timeline reaches the maximum number of steps.",
+                                "Perhaps an infinite loop? Consider using '-maxStep' to increase this bound." },
+                "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+
+        } catch (ParseCancellationException parseCancel) {
+            JOptionPane.showMessageDialog(this,
+                    parseCancel.getCause().getMessage(),
+                    "Error while executing mima file.", JOptionPane.ERROR_MESSAGE);
+            MimaFlux.logStacktrace(parseCancel);
         } catch(Exception ex) {
             JOptionPane.showMessageDialog(this,
                     ex.getMessage(),

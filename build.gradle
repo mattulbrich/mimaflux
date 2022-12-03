@@ -3,6 +3,7 @@ plugins {
     id 'application'
     id 'antlr'
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id 'com.github.hierynomus.license' version '0.16.1'
 }
 
 group 'edu.kit.kastel.formal'
@@ -17,6 +18,13 @@ jar {
         attributes "Main-Class": "edu.kit.kastel.formal.mimaflux.MimaFlux"
     }
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(16)
+    }
+}
+
 
 application {
     mainClass = "edu.kit.kastel.formal.mimaflux.MimaFlux"
@@ -44,4 +52,14 @@ generateGrammarSource {
 
 test {
     useJUnitPlatform()
+}
+
+license {
+    header file("HEADER")
+    include "**/*.java"
+    include "**/*.g4"
+    mapping {
+        java = "SLASHSTAR_STYLE"
+        g4 = "SLASHSTAR_STYLE"
+    }
 }

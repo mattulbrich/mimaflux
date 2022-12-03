@@ -1,9 +1,25 @@
+/*
+ * This file is part of the tool MimaFlux.
+ * https://github.com/mattulbrich/mimaflux
+ *
+ * MimaFlux is a time travel debugger for the Minimal Machine
+ * used in Informatics teaching at a number of schools.
+ *
+ * The system is protected by the GNU General Public License Version 3.
+ * See the file LICENSE in the main directory of the project.
+ *
+ * (c) 2016-2022 Karlsruhe Institute of Technology
+ *
+ * Adapted for Mima by Mattias Ulbrich
+ */
 package edu.kit.kastel.formal.mimaflux;
 
 import edu.kit.kastel.formal.mimaflux.MimaFluxArgs.Range;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 
 public class State {
 
@@ -88,9 +104,15 @@ public class State {
         }
     }
 
-    public void printToConsole() {
+    public void printToConsole(Map<String, Integer> labelMap) {
         System.out.printf("        IAR  = 0x%06x = %8d\t\t(instruction there: %s)%n", iar, iar, toInstruction(mem[iar]));
         System.out.printf("        ACCU = 0x%06x = %8d%n", accu, accu);
+        Optional<Integer> maxLen = labelMap.keySet().stream().map(x -> x.length()).max(Integer::compare);
+        for (Entry<String, Integer> entry : labelMap.entrySet()) {
+            int val = entry.getValue();
+            System.out.printf("Label '%" + maxLen.get() +
+                    "s' at mem[0x%05x]  =  0x%06x = %8d = %s%n", entry.getKey(), val, mem[val], mem[val], toInstruction(mem[val]));
+        }
         if (MimaFlux.mmargs.printRanges != null) {
             for (Range range : MimaFlux.mmargs.printRanges) {
                 for (int i = range.from(); i <= range.to(); i++) {
