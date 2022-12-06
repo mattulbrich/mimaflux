@@ -20,6 +20,8 @@ import com.beust.jcommander.Parameter;
 import java.util.List;
 
 public class MimaFluxArgs {
+    private static final String INDENT = "      ";
+
     record Range(int from, int to) {
     }
 
@@ -43,25 +45,37 @@ public class MimaFluxArgs {
     @Parameter(names = "-verbose", description = "Give more logs on the console")
     public boolean verbose = false;
 
-    @Parameter
+    @Parameter(description = "[<filename>]\n" + INDENT +
+            "The name of the assembly file to be loaded into the debugger. " +
+            "In -run mode, this file argument must be provided, in GUI mode it is optional.")
     public String fileName;
 
     @Parameter(names = {"-run", "-r"}, description = "Run without graphical user interface")
     public boolean autoRun;
 
     @Parameter(names = {"-print", "-p"},
-            description = "Comma-separated list of memory ranges to be printed after finishing the program [only in -run mode]",
+            description = "Arg: <addr>-<addr>.\n" + INDENT +
+                    "Print the provided memory ranges after finishing the program. " +
+                    "Can be specified multiple times for multiple ranges. [only in -run mode]",
             converter = RangeConverter.class
     )
     public List<Range> printRanges;
 
     @Parameter(names = {"-set", "-s"},
-            description = "..."
+            description = "Arg: <addr>=<val>.\n" + INDENT +
+                    "Set a memory location to a specified value. The address addr and " +
+                    "the value val can be a number or a label (defined in the assembly code). " +
+                    "Can be specified multiple times for multiple ranges. [only in -run mode]"
     )
     public List<String> assignments;
 
-    @Parameter(names = {"-test", "-t"},
-            description = "..."
+    @Parameter(names = {"-test", "-t"}, descriptionKey = "addr=val",
+            description = "Arg: <addr>=<val>.\n" + INDENT +
+                    "Specify a test to be checked at the end of the run. The address and " +
+                    "the value val can be a number or a label (defined in the assembly code). " +
+                    "Can be specified multiple times for multiple ranges. If at least one address " +
+                    "specified in a test contains a different than the specified value, the program " +
+                    "terminates with a non-zero exit code [only in -run mode]\""
     )
     public List<String> tests;
 
