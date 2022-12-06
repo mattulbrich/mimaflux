@@ -24,11 +24,16 @@ file :
 
 line :
     adr_spec
+  | label_spec
   | command
   ;
 
 adr_spec :
   '*' '=' NUMBER
+  ;
+
+label_spec :
+  ID '=' NUMBER
   ;
 
 command :

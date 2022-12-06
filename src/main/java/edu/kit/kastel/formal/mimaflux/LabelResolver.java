@@ -14,6 +14,8 @@
  */
 package edu.kit.kastel.formal.mimaflux;
 
+import edu.kit.kastel.formal.mimaflux.MimaAsmParser.CommandContext;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -24,16 +26,23 @@ public class LabelResolver {
 
     public void resolve(List<Command> commands) {
         labelMap = new HashMap<String, Integer>();
-        for (Command command : commands) {
+        ListIterator<Command> it = commands.listIterator();
+        while (it.hasNext()) {
+            Command command = it.next();
             if (command.label() != null) {
                 if (labelMap.containsKey(command.label())) {
-                    throw new TokenedException(command.ctx().getStart(), "Symbol '" + command.label() + "' already defined");
+                    CommandContext ctx = command.ctx();
+                    throw new TokenedException(ctx != null ? ctx.getStart() : null, "Symbol '" + command.label() + "' already defined");
                 }
                 labelMap.put(command.label(), command.address());
             }
+            if (command.instruction() == null) {
+                // This was a label definition only.
+                it.remove();
+            }
         }
 
-        ListIterator<Command> it = commands.listIterator();
+        it = commands.listIterator();
         while (it.hasNext()) {
             Command command = it.next();
             if(command.labelArg() != null) {
