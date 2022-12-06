@@ -107,7 +107,7 @@ public class State {
     public void printToConsole(Map<String, Integer> labelMap) {
         System.out.printf("        IAR  = 0x%06x = %8d\t\t(instruction there: %s)%n", iar, iar, toInstruction(mem[iar]));
         System.out.printf("        ACCU = 0x%06x = %8d%n", accu, accu);
-        Optional<Integer> maxLen = labelMap.keySet().stream().map(x -> x.length()).max(Integer::compare);
+        Optional<Integer> maxLen = labelMap.keySet().stream().map(String::length).max(Integer::compare);
         for (Entry<String, Integer> entry : labelMap.entrySet()) {
             int val = entry.getValue();
             System.out.printf("Label '%" + maxLen.get() +

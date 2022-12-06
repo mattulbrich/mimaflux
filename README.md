@@ -1,4 +1,4 @@
-# Mima Flux Capacitator
+# Mima Flux Capacitor
 
 This tool is a debugger for Mima assembly code.
 

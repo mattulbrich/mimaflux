@@ -33,6 +33,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GUI extends JFrame implements UpdateListener {
     public static final int MIN_FIELD_WIDTH = 70;
@@ -58,6 +63,8 @@ public class GUI extends JFrame implements UpdateListener {
     private JTextField iarField;
     private JLabel nextInstruction;
     private String lastFilename;
+    private List<JComponent> componentsToDisable = new ArrayList<>();
+    private JPanel optionalPanel;
 
     public GUI(Timeline timeline) {
         super("Mima Flux Capacitor -- Time Travel Debugger");
@@ -67,18 +74,30 @@ public class GUI extends JFrame implements UpdateListener {
     }
 
     private void setTimeline(Timeline timeline) {
-        this.timeline = timeline;
+
         if (timeline == null) {
+            this.timeline = null;
+            setModified(true);
             return;
         }
         timeline.addListener(this);
         code.setText(timeline.getFileContent());
+        this.timeline = timeline;
 
         memoryChanged(Timeline.STEP, 0);
         memoryChanged(State.ACCU, 0);
         memoryChanged(State.IAR, timeline.get(State.IAR));
 
+        setModified(false);
         refillTable();
+    }
+
+    private void setModified(boolean b) {
+        componentsToDisable.forEach(x -> x.setEnabled(!b));
+        ((CardLayout)optionalPanel.getLayout()).show(optionalPanel, b ? "modified" : "normal");
+        if(b) {
+            code.removeHighlights();
+        }
     }
 
     private void refillTable() {
@@ -109,6 +128,8 @@ public class GUI extends JFrame implements UpdateListener {
         cp.setLayout(new BorderLayout());
 
         this.code = new BreakpointPane(breakpointManager, true);
+        this.code.setEditable(true);
+        this.code.getDocument().addDocumentListener((UniDocListener) x -> setTimeline(null));
         code.setBreakPointResource(this);
         code.setMinimumSize(new Dimension(200, 400));
 
@@ -121,7 +142,13 @@ public class GUI extends JFrame implements UpdateListener {
         label.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         leftPanel.add(label, BorderLayout.SOUTH);
 
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, memPanel);
+        this.optionalPanel = new JPanel(new CardLayout());
+        optionalPanel.add(memPanel, "normal");
+        JLabel disabled = new JLabel("Program has been modified ...");
+        disabled.setBorder(BorderFactory.createEmptyBorder(5,30,5,5));
+        optionalPanel.add(disabled, "modified");
+
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, optionalPanel);
         split.setResizeWeight(1);
         cp.add(split, BorderLayout.CENTER);
 
@@ -214,16 +241,24 @@ public class GUI extends JFrame implements UpdateListener {
     private Container makeButtonPanel() {
         JToolBar buttonPanel = new JToolBar();
         buttonPanel.setFloatable(false);
-        buttonPanel.add(b("Menu", null, Codicons.MENU, this::showMenu));
+        buttonPanel.add(button("Menu", null, Codicons.MENU, this::showMenu, false));
         buttonPanel.addSeparator(new Dimension(50,0));
-        buttonPanel.add(b("Go to initial state", null, Codicons.DEBUG_RESTART, e -> timeline.setPosition(0)));
-        buttonPanel.add(b("Continue backwards",  KeyStroke.getKeyStroke("F5"), Codicons.DEBUG_REVERSE_CONTINUE, e -> continueToBreakpoint(-1)));
-        buttonPanel.add(b("Step backwards",  KeyStroke.getKeyStroke("F6"), Codicons.DEBUG_STEP_BACK, e -> timeline.addToPosition(-1)));
-        buttonPanel.add(b("Step forwards",  KeyStroke.getKeyStroke("F8"), Codicons.DEBUG_STEP_OVER, e -> timeline.addToPosition(1)));
-        buttonPanel.add(b("Continue forwards",  KeyStroke.getKeyStroke("F9"), Codicons.DEBUG_CONTINUE, e-> continueToBreakpoint(+1)));
-        buttonPanel.add(b("Go to terminal state",  null, Codicons.DEBUG_START, e-> timeline.setPosition(timeline.countStates() - 1)));
+        buttonPanel.add(button("Go to initial state", null, Codicons.DEBUG_RESTART, this::gotoStart, false));
+        buttonPanel.add(button("Continue backwards until breakpoint",  KeyStroke.getKeyStroke("F5"), Codicons.DEBUG_REVERSE_CONTINUE, e -> continueToBreakpoint(-1), true));
+        buttonPanel.add(button("Step backwards",  KeyStroke.getKeyStroke("F6"), Codicons.DEBUG_STEP_BACK, e -> timeline.addToPosition(-1), true));
+        buttonPanel.add(button("Step forwards",  KeyStroke.getKeyStroke("F8"), Codicons.DEBUG_STEP_OVER, e -> timeline.addToPosition(1), true));
+        buttonPanel.add(button("Continue forwards until breakpoint",  KeyStroke.getKeyStroke("F9"), Codicons.DEBUG_CONTINUE, e-> continueToBreakpoint(+1), true));
+        buttonPanel.add(button("Go to terminal state",  null, Codicons.DEBUG_START, e-> timeline.setPosition(timeline.countStates() - 1), true));
 
         return buttonPanel;
+    }
+
+    private void gotoStart(ActionEvent actionEvent) {
+        if (timeline == null) {
+            loadString(code.getText());
+        } else {
+            timeline.setPosition(0);
+        }
     }
 
     private void showMenu(ActionEvent e) {
@@ -257,12 +292,25 @@ public class GUI extends JFrame implements UpdateListener {
     }
 
     private void loadFile(String file) {
+        String content = null;
         try {
-            Interpreter interpreter = new Interpreter(file);
-            interpreter.parse();
+            content = Files.readString(Paths.get(file));
+            this.lastFilename = file;
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    ex.getMessage(),
+                    "Error while loading file.", JOptionPane.ERROR_MESSAGE);
+            MimaFlux.logStacktrace(ex);
+        }
+        loadString(content);
+    }
+
+    private void loadString(String content) {
+        try {
+            Interpreter interpreter = new Interpreter();
+            interpreter.parseString(content);
             timeline = interpreter.makeTimeline();
             setTimeline(timeline);
-            this.lastFilename = file;
 
             if (timeline.countStates() == MimaFlux.mmargs.maxSteps) {
                 JOptionPane.showMessageDialog(this,
@@ -301,8 +349,9 @@ public class GUI extends JFrame implements UpdateListener {
         } while(pos > 0 && pos < timeline.countStates());
     }
 
-    private JButton b(String text, KeyStroke keyStroke, Ikon ikon, ActionListener listener) {
+    private JButton button(String text, KeyStroke keyStroke, Ikon ikon, ActionListener listener, boolean needsProgram) {
         JButton res = new JButton(FontIcon.of(ikon, 28));
+        res.setDisabledIcon(FontIcon.of(ikon, 28, Color.lightGray));
         res.setToolTipText(text);
         res.addActionListener(listener);
         res.setBorder(BorderFactory.createCompoundBorder(
@@ -315,6 +364,9 @@ public class GUI extends JFrame implements UpdateListener {
                 listener.actionPerformed(e);
             }
         });
+        if(needsProgram) {
+            componentsToDisable.add(res);
+        }
         return res;
     }
 

@@ -31,20 +31,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class Interpreter {
-    private final String fileName;
     private String fileContent;
     private Map<String, Integer> labelMap;
     private List<Command> commands;
 
     private Map<Integer, Integer> initialValues = new HashMap<>();
 
-    public Interpreter(String fileName) {
-        this.fileName = fileName;
+    public void parseFile(String fileName) throws IOException {
+        String fileContent = Files.readString(Paths.get(fileName));
+        parseString(fileContent);
     }
 
-    public void parse() throws IOException {
+    public void parseString(String fileContent) {
 
-        this.fileContent = Files.readString(Paths.get(fileName));
+        this.fileContent = fileContent;
 
         CharStream input = CharStreams.fromString(fileContent);
         MimaAsmLexer lexer = new MimaAsmLexer(input);

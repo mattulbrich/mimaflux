@@ -45,8 +45,8 @@ public class MimaFlux {
                     exit("A filename must be provided in -run mode.");
                 }
             } else {
-                Interpreter interpreter = new Interpreter(mmargs.fileName);
-                interpreter.parse();
+                Interpreter interpreter = new Interpreter();
+                interpreter.parseFile(mmargs.fileName);
                 if(mmargs.autoRun) {
                     setInitialValues(mmargs.assignments, interpreter);
                 }
@@ -90,8 +90,10 @@ public class MimaFlux {
                 }
                 Integer val = Integer.decode(parts[1]);
 
-                if(timeline.exposeState().get(resolved) != val) {
-                    System.err.println(" ... violated.");
+                int observed = timeline.exposeState().get(resolved);
+                if(observed != val) {
+                    System.err.printf(" ... violated. Expected value %d (0x%x) at address %s, but observed %d (0x%x).",
+                            val, val, parts[0], observed, observed);
                     exit("Test failed.");
                 } else {
                     System.err.println(" ... checked.");
