@@ -64,7 +64,7 @@ public class GUI extends JFrame implements UpdateListener {
     private String lastFilename;
 
     public GUI(Timeline timeline) {
-        super("Mima Flux Compensator -- Time Travel Debugger");
+        super("Mima Flux Capacitor -- Time Travel Debugger");
         this.lastFilename = MimaFlux.mmargs.fileName;
         initGui();
         setTimeline(timeline);
@@ -118,7 +118,14 @@ public class GUI extends JFrame implements UpdateListener {
 
         JPanel memPanel = makeMemPanel();
 
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(code), memPanel);
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.add(new JScrollPane(code), BorderLayout.CENTER);
+        JLabel label = new JLabel("Breakpoints can be set/unset by right-clicking onto a line number");
+        label.setFont(UIManager.getFont("TextField.font"));
+        label.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        leftPanel.add(label, BorderLayout.SOUTH);
+
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, memPanel);
         split.setResizeWeight(1);
         cp.add(split, BorderLayout.CENTER);
 
