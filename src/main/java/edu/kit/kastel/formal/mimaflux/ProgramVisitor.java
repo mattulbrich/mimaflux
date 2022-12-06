@@ -16,6 +16,8 @@ package edu.kit.kastel.formal.mimaflux;
 
 import edu.kit.kastel.formal.mimaflux.MimaAsmParser.Adr_specContext;
 import edu.kit.kastel.formal.mimaflux.MimaAsmParser.CommandContext;
+import edu.kit.kastel.formal.mimaflux.MimaAsmParser.Label_specContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,13 @@ public class ProgramVisitor extends MimaAsmBaseVisitor<Void> {
         if(curAddress >= Constants.ADDRESS_MASK) {
             throw new TokenedException(ctx.NUMBER().getSymbol(), "Address out of range");
         }
+        return null;
+    }
+
+    @Override
+    public Void visitLabel_spec(Label_specContext ctx) {
+        Integer number = Integer.decode(ctx.NUMBER().getText());
+        commands.add(new Command(number, ctx.ID().getText(), null, null, 0, null));
         return null;
     }
 
