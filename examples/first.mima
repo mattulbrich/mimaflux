@@ -1,4 +1,4 @@
-; Add two numbers to a thrid address
+; Add two numbers to a third address
 
 LDV a
 ADD b

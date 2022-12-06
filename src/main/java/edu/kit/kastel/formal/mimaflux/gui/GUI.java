@@ -32,6 +32,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -65,6 +67,7 @@ public class GUI extends JFrame implements UpdateListener {
     private String lastFilename;
     private List<JComponent> componentsToDisable = new ArrayList<>();
     private JPanel optionalPanel;
+    private boolean modifiedSinceLoad;
 
     public GUI(Timeline timeline) {
         super("Mima Flux Capacitor -- Time Travel Debugger");
@@ -129,7 +132,10 @@ public class GUI extends JFrame implements UpdateListener {
 
         this.code = new BreakpointPane(breakpointManager, true);
         this.code.setEditable(true);
-        this.code.getDocument().addDocumentListener((UniDocListener) x -> setTimeline(null));
+        this.code.getDocument().addDocumentListener((UniDocListener) x -> {
+            setTimeline(null);
+            modifiedSinceLoad = true;
+        });
         code.setBreakPointResource(this);
         code.setMinimumSize(new Dimension(200, 400));
 
@@ -156,7 +162,15 @@ public class GUI extends JFrame implements UpdateListener {
         setSize(900, 700);
         setLocationRelativeTo(null);
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        addWindowStateListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (sureChangesLost()) {
+                    dispose();
+                }
+            }
+        });
+
     }
 
     private JPanel makeMemPanel() {
@@ -265,9 +279,46 @@ public class GUI extends JFrame implements UpdateListener {
         JPopupMenu popup = new JPopupMenu();
         popup.add("Load ...").addActionListener(this::chooseFile);
         popup.add("Reload last file").addActionListener(this::reload);
-        popup.add("Exit").addActionListener(ev -> System.exit(0));
+        popup.add("Save").addActionListener(this::saveLastFile);
+        popup.add("Save As ...").addActionListener(this::saveAs);
+        popup.addSeparator();
+        popup.add("Exit").addActionListener(ev -> {
+            if(sureChangesLost()) System.exit(0);
+        });
         Component comp = (Component) e.getSource();
         popup.show(comp, comp.getX(), comp.getY() + comp.getHeight());
+    }
+
+    private void saveAs(ActionEvent actionEvent) {
+        JFileChooser jfc = new JFileChooser(".");
+        jfc.addChoosableFileFilter(MIMA_ASM_FILE_FILTER);
+        jfc.setFileFilter(MIMA_ASM_FILE_FILTER);
+        int result = jfc.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = jfc.getSelectedFile();
+            saveFile(file.toString());
+        }
+    }
+
+    private void saveLastFile(ActionEvent actionEvent) {
+        if(lastFilename != null) {
+            saveFile(lastFilename);
+        } else {
+            saveAs(actionEvent);
+        }
+    }
+
+    private void saveFile(String fileName) {
+        try {
+            Files.writeString(Paths.get(fileName), code.getText());
+            this.lastFilename = fileName;
+            modifiedSinceLoad = false;
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    ex.getMessage(),
+                    "Error while saving file.", JOptionPane.ERROR_MESSAGE);
+            MimaFlux.logStacktrace(ex);
+        }
     }
 
     private void reload(ActionEvent actionEvent) {
@@ -276,11 +327,16 @@ public class GUI extends JFrame implements UpdateListener {
                     "No file has been loaded so far that could be reloaded.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         } else {
-            loadFile(lastFilename);
+            if(sureChangesLost()) {
+                loadFile(lastFilename);
+            }
         }
     }
 
     private void chooseFile(ActionEvent e) {
+        if(!sureChangesLost()) {
+            return;
+        }
         JFileChooser jfc = new JFileChooser(".");
         jfc.addChoosableFileFilter(MIMA_ASM_FILE_FILTER);
         jfc.setFileFilter(MIMA_ASM_FILE_FILTER);
@@ -289,6 +345,16 @@ public class GUI extends JFrame implements UpdateListener {
             File file = jfc.getSelectedFile();
             loadFile(file.toString());
         }
+    }
+
+    private boolean sureChangesLost() {
+        if (!modifiedSinceLoad) {
+            return true;
+        }
+        int answer = JOptionPane.showConfirmDialog(this,
+                "Loading a file or exiting will destroy the modifications you made in the editor. Continue?",
+                "Are you sure?", JOptionPane.YES_NO_OPTION);
+        return answer == JOptionPane.YES_OPTION;
     }
 
     private void loadFile(String file) {
