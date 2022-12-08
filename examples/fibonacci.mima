@@ -1,0 +1,36 @@
+; Fibonacci number
+
+N = 10
+
+a: DS
+b: DS
+n: DS
+t: DS
+
+START:
+  LDC 0
+  STV a
+  LDC 1
+  STV b
+
+loop:
+  LDC N
+  EQL n
+  JMN end
+
+  LDV a
+  ADD b
+  STV t
+
+  LDV b
+  STV a
+
+  LDV t
+  STV b
+
+  LDC 1
+  ADD n
+  STV n
+  JMP loop
+
+end: HALT

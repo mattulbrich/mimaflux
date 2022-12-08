@@ -74,6 +74,7 @@ public class GUI extends JFrame implements UpdateListener {
         this.lastFilename = MimaFlux.mmargs.fileName;
         initGui();
         setTimeline(timeline);
+        modifiedSinceLoad = false;
     }
 
     private void setTimeline(Timeline timeline) {
@@ -164,11 +165,13 @@ public class GUI extends JFrame implements UpdateListener {
         setSize(900, 700);
         setLocationRelativeTo(null);
 
-        addWindowStateListener(new WindowAdapter() {
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 if (sureChangesLost()) {
-                    dispose();
+                    System.exit(0);
                 }
             }
         });
@@ -371,6 +374,7 @@ public class GUI extends JFrame implements UpdateListener {
             MimaFlux.logStacktrace(ex);
         }
         loadString(content);
+        modifiedSinceLoad = false;
     }
 
     private void loadString(String content) {

@@ -1,0 +1,30 @@
+; Find a zero.
+
+* = 0x100
+DS 0x105
+DS 0x102
+DS 0x104
+DS 0x106
+DS 0x103
+DS 0x101
+DS 0      ; Try "0x100" here
+
+* = 0
+
+ptr: DS 0x100
+x : DS
+
+loop:
+  LDIV ptr
+  STV x
+  LDC 0
+  EQL x
+  JMN end
+
+  LDV x
+  STV ptr
+  JMP loop
+
+end: HALT
+
+
