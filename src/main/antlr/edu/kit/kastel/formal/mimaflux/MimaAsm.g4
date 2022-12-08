@@ -69,7 +69,7 @@ NOT : 'NOT';
 RAR : 'RAR';
 EQL: 'EQL';
 
-NUMBER : ( '0' [xX][a-fA-F0-9]+ | [0-9]+ );
+NUMBER : ( '0' [xX][a-fA-F0-9]+ | ( '-' )? [0-9]+ );
 ID : [A-Za-z_][A-Za-z_0-9]*;
 
 WS : [ \t\r\n]+ -> skip;

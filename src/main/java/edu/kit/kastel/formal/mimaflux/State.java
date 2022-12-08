@@ -79,11 +79,24 @@ public class State {
     private void populateMemoryFromProgram(List<Command> commands) {
         for (Command command : commands) {
             int adr = command.address();
-            int opcode = OPCODES.getOrDefault(command.instruction(), -1);
             int arg = command.valueArg();
-            mem[adr] = opcode;
-            if((opcode & 0xf0_0000) != 0xf0_0000) {
-                mem[adr] |= arg;
+
+            if ("DS".equals(command.instruction())) {
+                if (!Constants.isValue(arg)) {
+                    throw new TokenedException(command.getMnemonic(),
+                            String.format("%d (0x%x) is out of range for a 24-bit value.", arg, arg));
+                }
+                mem[adr] = arg & Constants.VALUE_MASK;
+             } else {
+                int opcode = OPCODES.getOrDefault(command.instruction(), -1);
+                mem[adr] = opcode;
+                if ((opcode & 0xf0_0000) != 0xf0_0000) {
+                    if (!Constants.isAddress(arg)) {
+                        throw new TokenedException(command.getMnemonic(),
+                                String.format("%d (0x%x) is out of range for a 20-bit address value.", arg, arg));
+                    }
+                    mem[adr] |= arg;
+                }
             }
         }
     }

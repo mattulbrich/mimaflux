@@ -39,9 +39,16 @@ public class ProgramVisitor extends MimaAsmBaseVisitor<Void> {
 
     @Override
     public Void visitLabel_spec(Label_specContext ctx) {
-        Integer number = Integer.decode(ctx.NUMBER().getText());
-        commands.add(new Command(number, ctx.ID().getText(), null, null, 0, null));
-        return null;
+        try {
+            Integer number = Integer.decode(ctx.NUMBER().getText());
+            if (!Constants.isValue(number)) {
+                throw new TokenedException(ctx.NUMBER().getSymbol(), ctx.NUMBER().getText() + " is out of range for a 24-bit value.");
+            }
+            commands.add(new Command(number, ctx.ID().getText(), null, null, 0, null));
+            return null;
+        } catch (NumberFormatException e) {
+            throw new TokenedException(ctx.NUMBER().getSymbol(), ctx.NUMBER().getText() + " out of range.");
+        }
     }
 
     @Override
@@ -52,7 +59,11 @@ public class ProgramVisitor extends MimaAsmBaseVisitor<Void> {
         }
         int valueArg = 0;
         if (ctx.numberArg != null) {
-            valueArg = Integer.decode(ctx.numberArg.getText());
+            try {
+                valueArg = Integer.decode(ctx.numberArg.getText());
+            } catch (NumberFormatException e) {
+                throw new TokenedException(ctx.numberArg, ctx.numberArg.getText() + " out of range.");
+            }
         }
 
         String labelArg = null;

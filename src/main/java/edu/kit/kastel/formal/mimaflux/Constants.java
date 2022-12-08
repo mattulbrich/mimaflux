@@ -29,4 +29,19 @@ public class Constants {
     public static final int ADDRESS_WIDTH = 20;
     public static final int ADDRESS_RANGE = 1 << ADDRESS_WIDTH;
     public static final int ADDRESS_MASK = ADDRESS_RANGE - 1;
+
+    /**
+     * A value is ok between -2^23 and 2^24-1.
+     * values can be specified as unsigned or as signed constants ...
+     */
+    public static boolean isValue(int number) {
+        return ~VALUE_MASK <= number && number < VALUE_RANGE;
+    }
+
+    /**
+     * Addresses must be positive and in range
+     */
+    public static boolean isAddress(int number) {
+        return 0 <= number && number < ADDRESS_RANGE;
+    }
 }

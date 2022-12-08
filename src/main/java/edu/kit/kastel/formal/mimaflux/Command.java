@@ -15,6 +15,7 @@
 package edu.kit.kastel.formal.mimaflux;
 
 import edu.kit.kastel.formal.mimaflux.MimaAsmParser.CommandContext;
+import org.antlr.v4.runtime.Token;
 
 public record Command(int address, String label, String instruction,
                       String labelArg, int valueArg,
@@ -28,6 +29,14 @@ public record Command(int address, String label, String instruction,
             return ctx.mnemomicWithout().getStart().getLine();
         } else {
             return ctx.mnemomicWith().getStart().getLine();
+        }
+    }
+
+    public Token getMnemonic() {
+        if (ctx.mnemomicWith() != null) {
+            return ctx.mnemomicWith().getStart();
+        } else {
+            return ctx.mnemomicWithout().getStart();
         }
     }
 }
