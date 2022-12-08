@@ -1,0 +1,52 @@
+
+; Define a constant for the length
+len = 5
+
+; DATA address (optional):
+; e.g. * = 4
+
+      DS 00
+      DS 42
+list: DS 11
+      DS 22
+      DS 33
+      DS 44
+      DS 55
+      DS 66    ; this is already outside (len=5)
+
+; variables:
+cnt:  DS 
+ref:  DS
+sum:  DS
+
+; PROGRAM address:
+* = 0x20
+
+START:        ; The IAR will be initially set to
+              ; the value of the label "START".
+  LDC 0
+  STV sum
+  STV cnt
+
+  LDC list
+  STV ref
+
+next:
+  LDIV ref
+  ADD sum
+  STV sum
+
+  LDC 1
+  ADD cnt
+  STV cnt
+
+  LDC 1
+  ADD ref
+  STV ref
+
+  LDC len      ; "len" is a constant not an address!
+  EQL cnt
+  JMN done
+  JMP next
+
+done: HALT
