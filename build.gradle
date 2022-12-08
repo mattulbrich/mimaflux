@@ -30,6 +30,20 @@ application {
     mainClass = "edu.kit.kastel.formal.mimaflux.MimaFlux"
 }
 
+shadowJar {
+    dependencies {
+        exclude(dependency('org.antlr:antlr4:.*'))
+        exclude(dependency('com.ibm.icu:.*:.*'))
+        exclude(dependency('org.antlr:ST4:.*'))
+    }
+}
+
+//configurations {
+//    implementation {
+//        extendsFrom = extendsFrom.findAll { it != configurations.antlr }
+//    }
+//}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
