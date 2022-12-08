@@ -1,0 +1,32 @@
+; This example is taken from "mimasm" (with small changes)
+;   https://github.com/cbdevnet/mima/blob/master/mimasm/demo.txt
+;
+; Copyright (c) 2012, FJS/cbdev
+; All rights reserved.
+;
+;Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+;Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+;Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+;
+;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+                       ;MIMA-Assembler demonstration Code
+* = 0x10               ;Jump to memory location 0x10
+POS_ONE:  DS  1        ;Store decimal 1 here and declare label "POS_ONE"
+NEG_ONE:  DS -1        ;Store decimal -1 here and declare label "NEG_ONE"
+MAX = 100              ;Declare label "MAX" to expand to decimal 100
+COUNTER: DS            ;Declare label "COUNTER" to point to uninitalized cell
+
+* = 128                ;Jump to memory location 128
+START:  LDV POS_ONE    ;Declare label "START", load value at adress "POS_ONE" expands to into accumulator
+        STV COUNTER    ;Store current accumulator contents to the address "COUNTER" expands to
+LOOP:   LDV COUNTER    ;Declare label "LOOP", load the value at label "COUNTER" into accumulator
+        ADD POS_ONE    ;Add the content of the cell referenced by "POS_ONE" to the accumulator contents
+        STV COUNTER    ;Store accumulator contents to label "COUNTER"
+        LDC MAX        ;Load value at label "MAX"
+        EQL COUNTER    ;If the accumulator is equal to the value at "COUNTER", set accumulator to -1
+        JMN FINISH     ;If the accumulator's contents are negative, jump to label "FINISH"
+        JMP LOOP       ;Jump to label "LOOP"
+FINISH: HALT           ;Stop execution

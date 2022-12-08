@@ -75,3 +75,4 @@ ID : [A-Za-z_][A-Za-z_0-9]*;
 WS : [ \t\r\n]+ -> skip;
 COMMENT : ';' .*? '\n' -> skip;
 
+UNKNOWN_CHARACTER : . ;
