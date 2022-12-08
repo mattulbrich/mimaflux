@@ -108,12 +108,14 @@ public class Interpreter {
                     break;
                 case 0xa:
                     tmp = state.get(arg);
-                    builder.set(State.ACCU, state.get(tmp));
+                    // throw away bits above address range ...
+                    tmp = state.get(tmp & Constants.ADDRESS_MASK);
+                    builder.set(State.ACCU, tmp);
                     builder.incIAR();
                     break;
                 case 0xb:
                     tmp = state.get(arg);
-                    builder.set(tmp, state.get(State.ACCU));
+                    builder.set(tmp & Constants.ADDRESS_MASK, state.get(State.ACCU));
                     builder.incIAR();
                     break;
                 case 0xc:
