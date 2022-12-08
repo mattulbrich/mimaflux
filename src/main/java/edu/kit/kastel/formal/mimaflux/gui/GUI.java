@@ -106,6 +106,8 @@ public class GUI extends JFrame implements UpdateListener {
     private void refillTable() {
         int page = ((Number)pageSpinner.getValue()).intValue() * ROW_COUNT;
 
+        iarField.setText(formatValue(timeline.get(State.IAR)));
+        accuField.setText(formatValue(timeline.get(State.ACCU)));
 
         for (int i = 0; i < ROW_COUNT; i++) {
             int adr = page | i;
