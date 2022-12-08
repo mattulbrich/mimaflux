@@ -4,10 +4,25 @@ plugins {
     id 'antlr'
     id "com.github.johnrengelman.shadow" version "7.1.2"
     id 'com.github.hierynomus.license' version '0.16.1'
+    id "org.ajoberstar.grgit" version "1.7.2"
 }
 
 group 'edu.kit.kastel.formal'
-version '1.1-SNAPSHOT'
+version '1.1.0'
+
+task versionFile()  {
+    def resourcesDir = sourceSets.main.output.resourcesDir
+    outputs.dir resourcesDir
+    doFirst {
+        resourcesDir.mkdirs()
+        new File(resourcesDir, "VERSION").text = "$version (${grgit.head().abbreviatedId})"
+        print( "$resourcesDir/VERSION created.")
+    }
+}
+
+compileJava.configure {
+    dependsOn versionFile
+}
 
 repositories {
     mavenCentral()
@@ -25,12 +40,12 @@ java {
     }
 }
 
-
 application {
     mainClass = "edu.kit.kastel.formal.mimaflux.MimaFlux"
 }
 
 shadowJar {
+    dependsOn versionFile
     dependencies {
         exclude(dependency('org.antlr:antlr4:.*'))
         exclude(dependency('com.ibm.icu:.*:.*'))

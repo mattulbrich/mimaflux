@@ -19,10 +19,27 @@ import com.beust.jcommander.ParameterException;
 import edu.kit.kastel.formal.mimaflux.gui.GUI;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 
 public class MimaFlux {
+
+    public static final String VERSION;
+    static {
+        URL u = MimaFlux.class.getResource("/VERSION");
+        String version = "<unknown>";
+        try {
+            try (InputStream in = u.openStream()) {
+                version = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            }
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        VERSION = version;
+    }
 
     public static MimaFluxArgs mmargs;
 
@@ -34,6 +51,8 @@ public class MimaFlux {
                     .addObject(mmargs)
                     .build();
             jc.parse(args);
+
+            System.out.println("Mima Flux Capacitor " + VERSION);
 
             if (mmargs.help) {
                 jc.usage();
