@@ -1,4 +1,6 @@
-; Find a zero.
+;
+; Follow a chain of pointer addresses to find an address that contains the value 0
+;
 
 * = 0x100
 DS 0x105
@@ -7,7 +9,7 @@ DS 0x104
 DS 0x106
 DS 0x103
 DS 0x101
-DS 0      ; Try "0x100" here
+DS 0      ; Try "0x100" here. What happens?
 
 * = 0
 

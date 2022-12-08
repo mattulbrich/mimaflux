@@ -139,7 +139,7 @@ a different memory page, however.
 The assembly source language ressembles many real world languages.
 
 You can find a detailed description of the language in the
-[MIM-Assembler
+[MIMA-Assembler
 description](https://github.com/cbdevnet/mima/blob/master/mimasm/MIMA-ASSEMBLER.txt). (There
 might be slight differences ...)
 
@@ -151,29 +151,41 @@ might be slight differences ...)
 * Labels are alpahnumeric strings that start with a character.
 * `<label> = <INT>` can be used to define a global constant `label` as an abbreviation for `<INT>`.
 * Every opcode may be proceeded by a `<label> :` The current address will be stored as a global constant `<label>`.
+* There is a special opcode `DS` that passes through its 24-bits argument directly. (If no argument is provided, 0 is assumed.)
 
-### Opcodes
+### Instructions
+
+The 4 most significant bits (opcode) of any mima instruction decide on
+the operation that is performed according to the following table.
+*x &xrarr; y* means that value *x* is written to destination *y*.  *c*
+is used to denote a 20-bit constant value. *< a >* means that the value
+at the address given by *a* is read or written. *<< a >>* means that the
+value of the address to which the lowest 20-bits of the value at
+memory location *a* point is read or written.
+
+The indirection can be thought of as a two step process:
+*<< a >> &xrarr; Acc* is first *< a > &xrarr; Acc*, then *< Acc > &xrarr; Acc*
 
 OpCode 	| mnemonik	| Description
 :------:|:--------------|:-----------
-0	| LDC c		| c --> Acc
-1	| LDV a		| < a > --> Acc
-2	| STV a		| Acc --> < a >
-3	| ADD a		| Acc + < a > --> Acc
-4	| AND a		| Acc AND < a > --> Acc
-5	| OR a		| Acc OR < a > --> Acc
-6	| XOR a		| Acc XOR < a > --> Acc
-7	| EQL a		| if(Acc == < a >){-1 --> Acc} else {0 --> Acc}
+0	| LDC c		| c &xrarr; Acc
+1	| LDV a		| < a > &xrarr; Acc
+2	| STV a		| Acc &xrarr; < a >
+3	| ADD a		| Acc + < a > &xrarr; Acc
+4	| AND a		| Acc AND < a > &xrarr; Acc
+5	| OR a		| Acc OR < a > &xrarr; Acc
+6	| XOR a		| Acc XOR < a > &xrarr; Acc
+7	| EQL a		| if(Acc == < a >) { -1 &xrarr; Acc } else { 0 &xrarr; Acc }
 8	| JMP a		| Jump to address a
-9	| JMN a		| Jump to address a if acc < 0
-A	| LDIV a	| << a >> --> Acc
-B	| STIV a	| Acc --> << a >>
-C	| JMS a		| jump subroutine (see below)
-D	| JIND a	| jump indirect (see below)
+9	| JMN a		| Jump to address a if Acc < 0
+A	| LDIV a	| << a >> &xrarr; Acc
+B	| STIV a	| Acc &xrarr; << a >>
+C	| JMS a		| jump subroutine
+D	| JIND a	| jump indirect
 E	|		| free
 F0	| HALT		| stops the minimal machine
-F1	| NOT		| one's complement(Acc) --> Acc
-F2	| RAR		| rotates Acc on the the right --> Acc
+F1	| NOT		| one's complement(Acc) &xrarr; Acc
+F2	| RAR		| rotates Acc on the the right &xrarr; Acc
 F3 - FF	|		| free
 
 ## Other simulators

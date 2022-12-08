@@ -1,10 +1,16 @@
-; Fibonacci number
+;
+; Compute a fibonacci number
+;
 
+; This constants determines which number in the fibonacci sequences is to be computed
 N = 10
 
+; fib(n-1)
 a: DS
+; fib(n)
 b: DS
 n: DS
+; temporary variable
 t: DS
 
 START:
@@ -12,23 +18,24 @@ START:
   STV a
   LDC 1
   STV b
+  STV n
 
 loop:
-  LDC N
+  LDC N     ; if n = N then end
   EQL n
   JMN end
 
-  LDV a
+  LDV a     ; t = a + b
   ADD b
   STV t
 
-  LDV b
+  LDV b     ; a = b
   STV a
 
-  LDV t
+  LDV t     ; b = t
   STV b
 
-  LDC 1
+  LDC 1     ; n = n + 1
   ADD n
   STV n
   JMP loop

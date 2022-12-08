@@ -1,0 +1,35 @@
+
+; "Russische Bauernmultiplikation" for c = a * b
+; Set c to zero then
+; add the value of a to c and decrement b until b reaches zero.
+
+;
+; the inputs a and b
+a: DS 42
+b: DS 10
+; the output memory location c
+c: DS
+
+; here begins the assembly code:
+START:
+  ; set c to zero
+  LDC 0
+  STV c
+  
+loop:
+  LDC 0
+  EQL b     ; accu < 0 iff b=0
+  JMN end   ; jmp to end if b = 0
+  
+  LDV a     ; add a to c
+  ADD c
+  STV c     ; and store in c
+  
+  LDC 0
+  NOT       ; this gives -1 in accu
+  ADD b     ; this gives b-1 in accu
+  STV b     ; and stores it to b
+  JMP loop  ; re-iterate the loop
+  
+end:
+  HALT
