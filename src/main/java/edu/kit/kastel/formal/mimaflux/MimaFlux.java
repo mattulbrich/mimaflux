@@ -59,6 +59,15 @@ public class MimaFlux {
                 System.exit(0);
             }
 
+            if (mmargs.verifyFile != null) {
+                if (mmargs.fileName == null) {
+                    exit("A filename must be provided in -verify mode.");
+                }
+                MimaVerification mv = new MimaVerification();
+                int res = mv.verify(mmargs.verifyFile, mmargs.fileName);
+                System.exit(res);
+            }
+
             if (mmargs.fileName == null) {
                 if (mmargs.autoRun) {
                     exit("A filename must be provided in -run mode.");
@@ -66,9 +75,8 @@ public class MimaFlux {
             } else {
                 Interpreter interpreter = new Interpreter();
                 interpreter.parseFile(mmargs.fileName);
-                if(mmargs.autoRun) {
-                    setInitialValues(mmargs.assignments, interpreter);
-                }
+                loadTestCaseInitialValues(mmargs.loadTest, interpreter);
+                setInitialValues(mmargs.assignments, interpreter);
                 timeline = interpreter.makeTimeline();
             }
 
@@ -89,6 +97,14 @@ public class MimaFlux {
         } catch (Exception ex) {
             exit(ex);
         }
+    }
+
+    private static void loadTestCaseInitialValues(String loadTest, Interpreter interpreter) throws IOException {
+        int hash = loadTest.lastIndexOf('#');
+        String file = loadTest.substring(0, hash);
+        String testcase = loadTest.substring(hash + 1);
+        MimaVerification mv = new MimaVerification();
+        mv.setInitialValues(file, testcase, interpreter);
     }
 
     private static void ensureTests(Timeline timeline) {
@@ -125,6 +141,11 @@ public class MimaFlux {
     }
 
     private static void setInitialValues(List<String> assignments, Interpreter interpreter) {
+
+        // Make _accu and _iar available.
+        interpreter.getLabelMap().put("_accu", State.ACCU);
+        interpreter.getLabelMap().put("_iar", State.IAR);
+
         if (assignments == null) {
             return;
         }

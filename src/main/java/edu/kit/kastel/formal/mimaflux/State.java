@@ -122,6 +122,10 @@ public class State {
         System.out.printf("        ACCU = 0x%06x = %8d%n", accu, accu);
         Optional<Integer> maxLen = labelMap.keySet().stream().map(String::length).max(Integer::compare);
         for (Entry<String, Integer> entry : labelMap.entrySet()) {
+            if(entry.getKey().startsWith("_")) {
+                // do not print labels for IAR and ACCU
+                continue;
+            }
             int val = entry.getValue();
             System.out.printf("Label '%" + maxLen.get() +
                     "s' at mem[0x%05x]  =  0x%06x = %8d = %s%n", entry.getKey(), val, mem[val], mem[val], toInstruction(mem[val]));

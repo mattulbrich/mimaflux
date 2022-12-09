@@ -65,11 +65,11 @@ public class MimaFluxArgs {
             description = "Arg: <addr>=<val>.\n" + INDENT +
                     "Set a memory location to a specified value. The address addr and " +
                     "the value val can be a number or a label (defined in the assembly code). " +
-                    "Can be specified multiple times for multiple ranges. [only in -run mode]"
+                    "Can be specified multiple times for multiple ranges."
     )
     public List<String> assignments;
 
-    @Parameter(names = {"-test", "-t"}, descriptionKey = "addr=val",
+    @Parameter(names = {"-test", "-t"},
             description = "Arg: <addr>=<val>.\n" + INDENT +
                     "Specify a test to be checked at the end of the run. The address and " +
                     "the value val can be a number or a label (defined in the assembly code). " +
@@ -78,6 +78,20 @@ public class MimaFluxArgs {
                     "terminates with a non-zero exit code [only in -run mode]\""
     )
     public List<String> tests;
+
+    @Parameter(names = {"-loadTest", "-l"},
+             description = "Arg: <file>#<name>.\n" + INDENT +
+                     "Load the test case named <name> specified in <file> into the GUI.")
+    public String loadTest;
+
+    @Parameter(names = {"-verify", "-v"},
+            description = "Arg: <filename>.\n" + INDENT +
+                    "Run all tests specified in the argument file. A test case " +
+                    "is specified as follows:\n" + INDENT +
+                    "  <name>: <in1>=<val> <in2>=<val> ... ==> <out1>=<val> <out2>=<val>\n" + INDENT +
+                    "[implies -run mode]"
+    )
+    public String verifyFile;
 
     @Parameter(names = "-maxSteps", description = "Maximum number of steps to be recorded by mima flux")
     public int maxSteps = 1000;
