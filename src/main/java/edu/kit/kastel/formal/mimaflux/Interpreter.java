@@ -123,7 +123,7 @@ public class Interpreter {
                     builder.set(State.IAR, (arg + 1) & Constants.ADDRESS_MASK);
                     break;
                 case 0xd:
-                    builder.set(State.IAR, state.get(arg));
+                    builder.set(State.IAR, state.get(arg) & Constants.ADDRESS_MASK);
                     break;
 
                 case 0xf: switch(arg) {
