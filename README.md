@@ -152,6 +152,7 @@ might be slight differences ...)
 * `<label> = <INT>` can be used to define a global constant `label` as an abbreviation for `<INT>`.
 * Every opcode may be proceeded by a `<label> :` The current address will be stored as a global constant `<label>`.
 * There is a special opcode `DS` that passes through its 24-bits argument directly. (If no argument is provided, 0 is assumed.)
+* The address of the magic label `START:` (if it exists) is used to initialize IAR before any instructions are simulated.
 
 ### Instructions
 
