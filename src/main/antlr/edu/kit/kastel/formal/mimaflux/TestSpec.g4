@@ -23,11 +23,17 @@ file :
   ;
 
 test :
-  name=ID() ':' pre+=spec* '==>' post+=spec+
+  name=ID() ':'
+  labels+=labelSpec*
+  pre+=spec* '==>' post+=spec+
   ;
 
 spec :
   addr=(ID | NUMBER) '=' val=NUMBER
+  ;
+
+labelSpec :
+  label=ID '->' val=NUMBER
   ;
 
 NUMBER : ( '0' [xX][a-fA-F0-9]+ | ( '-' )? [0-9]+ );

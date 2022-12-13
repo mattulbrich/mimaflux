@@ -1,6 +1,7 @@
 package edu.kit.kastel.formal.mimaflux;
 
 import edu.kit.kastel.formal.mimaflux.TestSpecParser.FileContext;
+import edu.kit.kastel.formal.mimaflux.TestSpecParser.LabelSpecContext;
 import edu.kit.kastel.formal.mimaflux.TestSpecParser.SpecContext;
 import edu.kit.kastel.formal.mimaflux.TestSpecParser.TestContext;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -14,29 +15,36 @@ import java.io.IOException;
 import java.util.List;
 
 public class MimaVerification {
+    private String verifyFilename;
+    private String fileName;
+
     public int verify(String verifyFilename, String fileName) throws IOException {
+        this.verifyFilename = verifyFilename;
+        this.fileName = fileName;
 
         FileContext file = parse(verifyFilename);
         log("Verifying from " + verifyFilename);
         int result = 0;
         for (TestContext testContext : file.test()) {
-            result += verifyTest(testContext, fileName);
+            result += verifyTest(testContext);
         }
         return result;
     }
 
     public void setInitialValues(String verifyFilename, String testcase, Interpreter interpreter) throws IOException {
+        interpreter.getLabelMap().put("_accu", State.ACCU);
+        interpreter.getLabelMap().put("_iar", State.IAR);
         FileContext file = parse(verifyFilename);
         for (TestContext testContext : file.test()) {
             if(testContext.name.getText().equals(testcase)) {
-                setInitialValues(testContext.pre, interpreter);
+                setInitialValues(testContext.labels, testContext.pre, interpreter);
                 return;
             }
         }
         MimaFlux.exit(String.format("Testcase %s not found in %s.", testcase, verifyFilename));
     }
 
-    private int verifyTest(TestContext testContext, String fileName) {
+    private int verifyTest(TestContext testContext) {
         log("------------------");
         String name = testContext.name.getText();
         log("TEST CASE: " + name);
@@ -45,10 +53,10 @@ public class MimaVerification {
             interpreter.parseFile(fileName);
             interpreter.getLabelMap().put("_accu", State.ACCU);
             interpreter.getLabelMap().put("_iar", State.IAR);
-            setInitialValues(testContext.pre, interpreter);
+            setInitialValues(testContext.labels, testContext.pre, interpreter);
             Timeline timeline = interpreter.makeTimeline();
             timeline.setPosition(timeline.countStates() - 1);
-            return checkPostConditions(testContext, interpreter, timeline, fileName);
+            return checkPostConditions(testContext, interpreter, timeline);
         } catch (Exception exception) {
             log(" ... Exception (try -verbose)");
             MimaFlux.logStacktrace(exception);
@@ -56,7 +64,7 @@ public class MimaVerification {
         }
     }
 
-    private int checkPostConditions(TestContext testContext, Interpreter interpreter, Timeline timeline, String fileName) {
+    private int checkPostConditions(TestContext testContext, Interpreter interpreter, Timeline timeline) {
         for (SpecContext specContext : testContext.post) {
             String addr = specContext.addr.getText();
             String valStr = specContext.val.getText();
@@ -72,7 +80,8 @@ public class MimaVerification {
             if (observed != val) {
                 log(String.format("  ... violated. Expected value %d (0x%x) at address %s, but observed %d (0x%x).",
                         val, val, addr, observed, observed));
-                log("  Try invoking mimaflux with -loadTest " + fileName + "#" + testContext.name.getText());
+                log("  Try invoking mimaflux with '-loadTest " + verifyFilename + "#" +
+                        testContext.name.getText() + " " + fileName + "'");
                 log("Test failed.");
                 return 1;
             } else {
@@ -82,8 +91,15 @@ public class MimaVerification {
         return 0;
     }
 
-    private void setInitialValues(List<SpecContext> pre, Interpreter interpreter) {
-            for (SpecContext specContext : pre) {
+    private void setInitialValues(List<LabelSpecContext> labelSpecs, List<SpecContext> pre, Interpreter interpreter) {
+        for (LabelSpecContext labelSpec : labelSpecs) {
+            String label = labelSpec.label.getText();
+            String valStr = labelSpec.val.getText();
+            Integer value = Integer.decode(valStr);
+            log(" Setting: " + label + " -> " + valStr);
+            interpreter.addLabelValue(label, value & Constants.ADDRESS_MASK);
+        }
+        for (SpecContext specContext : pre) {
             String addr = specContext.addr.getText();
             String valStr = specContext.val.getText();
             Integer resolved = interpreter.getLabelMap().get(addr);

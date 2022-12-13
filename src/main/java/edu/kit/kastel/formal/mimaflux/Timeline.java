@@ -34,12 +34,13 @@ public class Timeline {
     private int currentPosition = 0;
     private List<UpdateListener> listeners = new ArrayList<>();
 
-    public Timeline(Update[][] updates, String fileContent, Map<String, Integer> labelMap, List<Command> commands) {
+    public Timeline(Update[][] updates, String fileContent, Map<String, Integer> labelMap,
+                    List<Command> commands, Map<Integer, Integer> initialValues) {
         this.updates = updates;
         this.fileContent = fileContent;
         this.labelMap = labelMap;
         this.commands = commands;
-        this.state = new State(commands);
+        this.state = new State(commands, initialValues);
         int start = labelMap.getOrDefault(Constants.START_LABEL, 0);
         state.set(State.IAR, start);
     }

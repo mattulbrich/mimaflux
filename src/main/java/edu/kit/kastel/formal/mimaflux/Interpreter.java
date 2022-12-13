@@ -70,13 +70,8 @@ public class Interpreter {
 
     public Timeline makeTimeline() {
 
-        TimelineBuilder builder = new TimelineBuilder(fileContent, labelMap, commands);
+        TimelineBuilder builder = new TimelineBuilder(fileContent, labelMap, commands, initialValues);
         State state = builder.exposeState();
-
-        for (Entry<Integer, Integer> entry : initialValues.entrySet()) {
-            builder.set(entry.getKey(), entry.getValue());
-            MimaFlux.log("Update to initial state: " + entry);
-        }
 
         if (MimaFlux.mmargs.verbose) {
             System.out.println(" ---- initial state");
@@ -168,5 +163,9 @@ public class Interpreter {
 
     public void addPresetValue(Integer addr, Integer val) {
         initialValues.put(addr, val);
+    }
+
+    public void addLabelValue(String label, Integer val) {
+        labelMap.put(label, val);
     }
 }

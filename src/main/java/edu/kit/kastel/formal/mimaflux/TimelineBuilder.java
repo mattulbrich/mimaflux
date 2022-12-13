@@ -17,6 +17,7 @@ package edu.kit.kastel.formal.mimaflux;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class TimelineBuilder {
 
@@ -27,13 +28,15 @@ public class TimelineBuilder {
     private final String fileContent;
     private final Map<String, Integer> labelMap;
     private final List<Command> commands;
+    private final Map<Integer, Integer> initialValues;
     private final State state;
 
-    public TimelineBuilder(String fileContent, Map<String, Integer> labelMap, List<Command> commands) {
+    public TimelineBuilder(String fileContent, Map<String, Integer> labelMap, List<Command> commands, Map<Integer, Integer> initialValues) {
         this.fileContent = fileContent;
         this.labelMap = labelMap;
         this.commands = commands;
-        this.state = new State(commands);
+        this.initialValues = initialValues;
+        this.state = new State(commands, initialValues);
         int start = labelMap.getOrDefault(Constants.START_LABEL, 0);
         state.set(State.IAR, start);
     }
@@ -63,6 +66,6 @@ public class TimelineBuilder {
 
     public Timeline build() {
         Update[][] array = updates.toArray(Update[][]::new);
-        return new Timeline(array, fileContent, labelMap, commands);
+        return new Timeline(array, fileContent, labelMap, commands, initialValues);
     }
 }

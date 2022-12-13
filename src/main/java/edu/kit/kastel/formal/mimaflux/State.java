@@ -72,8 +72,16 @@ public class State {
     private int iar;
     private int accu;
 
-    public State(List<Command> commands) {
+    public State(List<Command> commands, Map<Integer, Integer> initialValues) {
         populateMemoryFromProgram(commands);
+        populateFromInitialValues(initialValues);
+    }
+
+    private void populateFromInitialValues(Map<Integer, Integer> initialValues) {
+        for (Entry<Integer, Integer> entry : initialValues.entrySet()) {
+            set(entry.getKey(), entry.getValue());
+            MimaFlux.log("Update to initial state: " + entry);
+        }
     }
 
     private void populateMemoryFromProgram(List<Command> commands) {
