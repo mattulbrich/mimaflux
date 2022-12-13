@@ -100,6 +100,10 @@ public class MimaFlux {
     }
 
     private static void loadTestCaseInitialValues(String loadTest, Interpreter interpreter) throws IOException {
+        if (loadTest == null) {
+            return;
+        }
+
         int hash = loadTest.lastIndexOf('#');
         String file = loadTest.substring(0, hash);
         String testcase = loadTest.substring(hash + 1);
@@ -197,4 +201,3 @@ public class MimaFlux {
         }
     }
 }
-
