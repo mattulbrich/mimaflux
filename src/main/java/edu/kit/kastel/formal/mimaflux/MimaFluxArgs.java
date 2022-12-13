@@ -93,6 +93,9 @@ public class MimaFluxArgs {
     )
     public String verifyFile;
 
+    @Parameter(names = "-gbi_hack")
+    public boolean gbi_hack;
+
     @Parameter(names = "-maxSteps", description = "Maximum number of steps to be recorded by mima flux")
     public int maxSteps = 1000;
 }
