@@ -13,21 +13,34 @@ import org.antlr.v4.runtime.Recognizer;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 public class MimaVerification {
     private String verifyFilename;
     private String fileName;
+    private int totalSteps;
 
     public int verify(String verifyFilename, String fileName) throws IOException {
         this.verifyFilename = verifyFilename;
         this.fileName = fileName;
+        this.totalSteps = 0;
 
         FileContext file = parse(verifyFilename);
         log("Verifying from " + verifyFilename);
         int result = 0;
         for (TestContext testContext : file.test()) {
             result += verifyTest(testContext);
+            System.out.println("TS " + totalSteps);
         }
+        if(result == 0) {
+            int score = (MimaFlux.mmargs.maxSteps * file.test().size()) - totalSteps;
+            System.out.printf("Total steps: %d, available steps: %d%n",
+                    totalSteps, (MimaFlux.mmargs.maxSteps * file.test().size()));
+            System.out.println("Mimaflux score: " + score);
+        } else {
+            System.out.println("Failed tests. No score computed.");
+        }
+
         return result;
     }
 
@@ -56,6 +69,8 @@ public class MimaVerification {
             setInitialValues(testContext.labels, testContext.pre, interpreter);
             Timeline timeline = interpreter.makeTimeline();
             timeline.setPosition(timeline.countStates() - 1);
+            System.out.println(" Steps: " + timeline.countStates());
+            totalSteps += timeline.countStates();
             return checkPostConditions(testContext, interpreter, timeline);
         } catch (Exception exception) {
             log(" ... Exception (try -verbose)");
