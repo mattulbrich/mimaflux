@@ -40,10 +40,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class GUI extends JFrame implements UpdateListener {
-    public static final int MIN_FIELD_WIDTH = 70;
-
     private static final String STEP_LABEL_PATTERN = "Step %d of %d    ";
     private static final Object[] TABLE_HEADERS = { "Address", "Value", "Instruction" };
     public static final int ROW_COUNT = 1 << 12;
@@ -59,7 +58,7 @@ public class GUI extends JFrame implements UpdateListener {
     private Timeline timeline;
     private DefaultTableModel tableModel;
     private JSpinner pageSpinner;
-    private JCheckBox hexMode;
+    private RepreComboBox repreMode;
     private JLabel stepLabel;
     private JTextField accuField;
     private JTextField iarField;
@@ -125,8 +124,17 @@ public class GUI extends JFrame implements UpdateListener {
     }
 
     private String formatValue(int val) {
-        boolean isHex = hexMode.isSelected();
-        return String.format(isHex ? "0x%06x" : "%d", val);
+        switch ((RepreComboBox.RepreState) Objects.requireNonNull(repreMode.getSelectedItem())) {
+            case BIN:
+                return String.format("%24s", Integer.toBinaryString(val))
+                    .replace(' ', '0');
+            case DEC:
+                return String.format("%d", val);
+            case HEX:
+                return String.format("0x%06x", val);
+            default:
+                return "";
+        }
     }
 
     private void initGui() {
@@ -191,27 +199,29 @@ public class GUI extends JFrame implements UpdateListener {
                 GridBagConstraints.EAST, GridBagConstraints.BOTH,
                 new Insets(0,0,0,0), 0,0);
 
+        gbc.weightx = 0;
         result.add(new JLabel("ACCU = "), gbc);
+
         gbc.gridx++;
-        gbc.ipadx = MIN_FIELD_WIDTH;
+        gbc.weightx = 1;
         accuField = new JTextField();
         accuField.setEditable(false);
         accuField.setFont(TABLE_FONT);
         accuField.setBackground(UIManager.getColor("Table.background"));
         result.add(accuField, gbc);
-        gbc.ipadx = 0;
+
         gbc.gridy++;
         gbc.gridx = 0;
-
+        gbc.weightx = 0;
         result.add(new JLabel("IAR = "), gbc);
+
         gbc.gridx++;
-        gbc.ipadx = MIN_FIELD_WIDTH;
+        gbc.weightx = 1;
         iarField = new JTextField();
         iarField.setEditable(false);
         iarField.setFont(TABLE_FONT);
         iarField.setBackground(UIManager.getColor("Table.background"));
         result.add(iarField, gbc);
-        gbc.ipadx = 0;
 
         gbc.gridy++;
         gbc.gridx = 0;
@@ -227,14 +237,17 @@ public class GUI extends JFrame implements UpdateListener {
         }
         gbc.gridy ++;
         {
-            JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            this.hexMode = new JCheckBox("Hex/Dec");
-            hexMode.setSelected(true);
-            hexMode.addChangeListener(e -> refillTable());
-            p.add(hexMode);
-
+            JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
             this.stepLabel = new JLabel(" ");
             p.add(stepLabel);
+            result.add(p, gbc);
+        }
+        gbc.gridy ++;
+        {
+            JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            this.repreMode = new RepreComboBox();
+            repreMode.addActionListener(e -> refillTable());
+            p.add(repreMode);
 
             p.add(new JLabel("      Memory page: "));
             this.pageSpinner = new JSpinner();
