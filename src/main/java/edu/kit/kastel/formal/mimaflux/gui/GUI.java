@@ -126,8 +126,14 @@ public class GUI extends JFrame implements UpdateListener {
     private String formatValue(int val) {
         switch ((RepreState) Objects.requireNonNull(repreMode.getSelectedItem())) {
             case BIN:
-                return String.format("%24s", Integer.toBinaryString(val))
-                    .replace(' ', '0');
+                char[] res = new char[24 + 5];
+                for (int p = res.length-1, i = 0; i < 24; i++, p--) {
+                    res[p] = (val & (1 << i)) == 0 ? '0' : '1';
+                    if (i % 4 == 3 && i < 23) {
+                        res[--p] = '\u2009';
+                    }
+                }
+                return new String(res);
             case DEC:
                 return String.format("%d", val);
             case HEX:
