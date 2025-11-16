@@ -4,7 +4,7 @@ plugins {
     id 'antlr'
     id "com.github.johnrengelman.shadow" version "7.1.2"
     id 'com.github.hierynomus.license' version '0.16.1'
-    id "org.ajoberstar.grgit" version "1.7.2"
+    id "org.ajoberstar.grgit" version "5.2.0"
 }
 
 group 'edu.kit.kastel.formal'
@@ -36,7 +36,7 @@ jar {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(16)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
