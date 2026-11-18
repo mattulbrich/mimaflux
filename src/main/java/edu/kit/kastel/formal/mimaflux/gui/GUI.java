@@ -148,6 +148,10 @@ public class GUI extends JFrame implements UpdateListener {
         cp.setLayout(new BorderLayout());
 
         this.code = new BreakpointPane(breakpointManager, true);
+
+        Action originalInsertBreak = code.getActionMap().get("insert-break");
+        code.getActionMap().put("insert-break", new PerserveIndentBreak(code, originalInsertBreak));
+
         this.code.setEditable(true);
         this.code.getDocument().addDocumentListener((UniDocListener) x -> {
             setTimeline(null);
